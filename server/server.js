@@ -15,7 +15,7 @@ var accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), {
 // setup the logger
 app.use(morgan('combined', { stream: accessLogStream }))
 
-const mongoDB = process.env.MONGODB_URI || "mongodb://localhost:27017/task-manager";
+const mongoDB = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/handcraft";
 
 main().catch((err) => console.log(err));
 

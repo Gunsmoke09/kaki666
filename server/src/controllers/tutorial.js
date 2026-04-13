@@ -99,15 +99,11 @@ exports.detail = asyncHandler(async (req, res, next) => {
         res.status(204).json({ error: "Task not found" });
     }
 
-    if (task.author != req.user.user_id && !req.user.is_admin) {
-        res.status(403).json({ error: "You are not allowed to access the task." });
-    }
-
     res.json(task);
 });
 
 exports.create = [
-    taskValidator(),
+    tutorialValidator(),
     asyncHandler(async (req, res, next) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -136,17 +132,13 @@ exports.delete = asyncHandler(async (req, res, next) => {
         return res.status(204).json({ error: 'Task not found' });
     }
 
-    if (task.author != req.user.user_id && !req.user.is_admin) {
-        return res.status(403).json({ error: "You are not allowed to delete the task." });
-    }
-
     await Task.findByIdAndDelete(req.params.id);
     res.status(200);
 });
 
 
 exports.update = [
-    taskValidator(),
+    tutorialValidator(),
 
     asyncHandler(async (req, res, next) => {
         const errors = validationResult(req);
@@ -158,10 +150,6 @@ exports.update = [
         const task = await Task.findOne({ _id: req.params.id });
         if (task == null) {
             return res.status(204).json({ error: 'Task not found' });
-        }
-
-        if (task.author != req.user.user_id && !req.user.is_admin) {
-            return res.status(403).json({ error: "You are not allowed to modify the task." });
         }
 
         const updatedTask = await Task.findOneAndUpdate(
