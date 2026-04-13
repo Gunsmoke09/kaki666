@@ -1,0 +1,102 @@
+const Category = require("../models/category");
+const asyncHandler = require("express-async-handler");
+
+const { body, query, validationResult } = require("express-validator");
+
+const categoryValidator = () => {
+    return [
+        body('name')
+            .notEmpty().withMessage('name is required')
+            .isString().withMessage('name must be a string'),
+    ];
+}
+
+exports.list = [
+    query('name').optional().trim(),
+
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const name = req.query.name || '';
+
+        const cats = await Category
+            .find({ name: new RegExp(name, 'i') })
+            .sort({ name: 'asc' });
+
+        res.status(200).json(cats);
+    })
+];
+
+exports.detail = asyncHandler(async (req, res, next) => {
+    const category = await Category.findById(req.params.id).exec();
+
+    if (category === null) {
+        res.status(204).json({ error: "Category not found" });
+    }
+
+    res.json(category);
+});
+
+exports.create = [
+    categoryValidator(),
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const category = new Category({
+            name: req.body.name,
+            description: req.body.description
+        });
+
+        await category.save();
+        res.status(201).json(category);
+    })
+];
+
+exports.delete = asyncHandler(async (req, res, next) => {
+
+    const category = await Category.findById(req.params.id).exec();
+
+    if (category == null) {
+        return res.status(204).json({ error: 'Category not found' });
+    }
+
+    await Category.findByIdAndDelete(req.params.id);
+    res.status(200);
+});
+
+
+exports.update = [
+    categoryValidator(),
+
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        // Check if the Category exists
+        const category = await Category.findOne({ _id: req.params.id });
+        if (category == null) {
+            return res.status(204).json({ error: 'Category not found' });
+        }
+
+        const updatedCategory = await Category.findOneAndUpdate(
+            { _id: req.params.id },
+            {
+                $set: {
+                    name: req.body.name,
+                    description: req.body.description
+                }
+            },
+            { new: true, runValidators: true } // `new: true` returns the updated document
+        );
+        
+        res.status(200).json(updatedCategory);
+    }),
+];
