@@ -59,26 +59,25 @@ const tutorialValidator = () => {
 exports.list = [
     query('title').optional().trim(),
 
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
         const title = req.query.title || '';
+        const filters = { title: new RegExp(title, 'i') };
 
-        const filters = { title: new RegExp(title, "i") };
-
-        const tutorialPage = await Tutorial
-            .find(filters)
-            .sort({ difficulty: 'asc' })
-            .lean()
-            .paginate({
-                ...req.paginate, populate: {
-                    path: "categories",
-                    select: "name" // Ensure only the 'name' field is populated
-                }
-            });
+        const tutorialPage = await Tutorial.paginate(filters, {
+            page: req.paginate.page,
+            limit: req.paginate.limit,
+            sort: { difficulty: 'asc' },
+            lean: true,
+            populate: {
+                path: "categories",
+                select: "name"
+            }
+        });
 
         res
             .status(200)
