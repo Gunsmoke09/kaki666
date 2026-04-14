@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const Tourial = require("../models/tutorial");
+const Tutorial = require("../models/tutorial");
 const asyncHandler = require("express-async-handler");
 
 const { body, query, validationResult } = require("express-validator");
@@ -41,18 +41,18 @@ const tutorialValidator = () => {
             .custom((material) => {
                 return material.every(item => mongoose.Types.ObjectId.isValid(item.material));
             }).withMessage('Each material must have a valid material ID'),
-        
+
         body('material.*.quantity')
-      .notEmpty().withMessage('Quantity is required')
-      .isInt({ min: 1 }).withMessage("Material quantity must be a positive integer"),
+            .notEmpty().withMessage('Quantity is required')
+            .isInt({ min: 1 }).withMessage("Material quantity must be a positive integer"),
 
-    body('material.*.unit"')
-      .notEmpty().withMessage('Unit is required')
-      .isString().withMessage("Material unit must be a string"),
+        body('material.*.unit')
+            .notEmpty().withMessage('Unit is required')
+            .isString().withMessage("Material unit must be a string"),
 
-    body('material.*.note')
-      .optional()
-      .isString().withMessage("Material note must be a string")
+        body('material.*.note')
+            .optional()
+            .isString().withMessage("Material note must be a string")
     ];
 }
 
@@ -73,11 +73,13 @@ exports.list = [
             .find(filters)
             .sort({ difficulty: 'asc' })
             .lean()
-            .paginate({ ...req.paginate, populate:{
-                path: "categories", 
-                select: "name" // Ensure only the 'name' field is populated
-            } });
-        
+            .paginate({
+                ...req.paginate, populate: {
+                    path: "categories",
+                    select: "name" // Ensure only the 'name' field is populated
+                }
+            });
+
         res
             .status(200)
             .links(generatePaginationLinks(
@@ -115,7 +117,8 @@ exports.create = [
             AverageTimeSpentMinutes: req.body.AverageTimeSpentMinutes,
             difficulty: req.body.difficulty,
             author: req.user.user_id,
-            categories: req.body.categories || []
+            categories: req.body.categories || [],
+            material: req.body.material || []
         });
 
         await tutorial.save();
@@ -157,9 +160,11 @@ exports.update = [
                 $set: {
                     title: req.body.title,
                     description: req.body.description,
-                    dueDate: req.body.dueDate,
-                    status: req.body.status,
-                    categories: req.body.categories || []
+                    instructions: req.body.instructions,
+                    AverageTimeSpentMinutes: req.body.AverageTimeSpentMinutes,
+                    difficulty: req.body.difficulty,
+                    categories: req.body.categories || [],
+                    material: req.body.material || []
                 }
             },
             { new: true, runValidators: true } // `new: true` returns the updated document
