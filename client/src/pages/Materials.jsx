@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button, Loader, Alert, Modal, Text, Group, Pagination, TextInput, Select, Stack, Title } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import MaterialList from '../components/Material/MaterialList';
 import MaterialForm from '../components/Material/MaterialForm';
 import { buildApiUrl } from '../utils/api';
@@ -21,15 +20,11 @@ const Materials = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
-  const navigate = useNavigate();
+
   const token = getAuthToken();
+  const isLoggedIn = Boolean(token);
 
   const fetchMaterials = useCallback(async () => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
@@ -42,9 +37,7 @@ const Materials = () => {
         sortOrder,
       });
 
-      const response = await fetch(buildApiUrl(`/materials?${params.toString()}`), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(buildApiUrl(`/materials?${params.toString()}`));
 
       if (!response.ok) {
         throw new Error(await readApiError(response, 'Failed to fetch materials'));
@@ -60,13 +53,21 @@ const Materials = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigate, page, search, sortOrder, token]);
+  }, [page, search, sortOrder]);
 
   useEffect(() => {
     fetchMaterials();
   }, [fetchMaterials]);
 
+  const requireAuth = () => {
+    if (isLoggedIn) return true;
+    setError('Please log in to manage materials.');
+    return false;
+  };
+
   const handleCreateMaterial = async (materialData) => {
+    if (!requireAuth()) return;
+
     const response = await fetch(buildApiUrl('/materials'), {
       method: 'POST',
       headers: {
@@ -86,6 +87,8 @@ const Materials = () => {
   };
 
   const handleUpdateMaterial = async (materialData) => {
+    if (!requireAuth()) return;
+
     const response = await fetch(buildApiUrl(`/materials/${selectedMaterial._id}`), {
       method: 'PUT',
       headers: {
@@ -105,6 +108,8 @@ const Materials = () => {
   };
 
   const handleDeleteMaterial = async () => {
+    if (!requireAuth()) return;
+
     const response = await fetch(buildApiUrl(`/materials/${selectedMaterial._id}`), {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
@@ -126,9 +131,11 @@ const Materials = () => {
     <Stack>
       <Group justify="space-between">
         <Title order={2}>Materials</Title>
-        <Button onClick={() => { setIsUpdateMode(false); setSelectedMaterial(null); setModalOpened(true); }}>
-          Create Material
-        </Button>
+        {isLoggedIn ? (
+          <Button onClick={() => { setIsUpdateMode(false); setSelectedMaterial(null); setModalOpened(true); }}>
+            Create Material
+          </Button>
+        ) : null}
       </Group>
 
       {error ? <Alert color="red">{error}</Alert> : null}
@@ -160,6 +167,7 @@ const Materials = () => {
         materials={materials}
         onEdit={(material) => { setIsUpdateMode(true); setSelectedMaterial(material); setModalOpened(true); }}
         onDelete={(material) => { setSelectedMaterial(material); setDeleteDialogOpened(true); }}
+        isLoggedIn={isLoggedIn}
       />
 
       <Pagination value={page} onChange={setPage} total={totalPages} withEdges />

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Paper, Title, TextInput, PasswordInput, Button, Stack, Text, Alert } from '@mantine/core';
 import { useNavigate, Link } from 'react-router-dom';
 import { buildApiUrl } from '../utils/api';
+import { readApiError } from '../utils/http';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -24,10 +25,8 @@ export default function Register() {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Register failed');
+        throw new Error(await readApiError(response, 'Register failed'));
       }
 
       navigate('/login');

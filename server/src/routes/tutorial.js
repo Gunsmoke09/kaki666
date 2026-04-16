@@ -8,16 +8,14 @@ const validatePaginateQueryParams = require("../middleware/validatePaginateQuery
 
 const router = express.Router();
 
-router.use(authenticateWithJwt);
-
 router.route("/")
     .get(validatePaginateQueryParams, controller.list)
-    .post(controller.create);
+    .post(authenticateWithJwt, controller.create);
 
 router.route("/:id")
     .all(validateMongoId("id"))
     .get(controller.detail)
-    .put(controller.update)
-    .delete(controller.delete);
+    .put(authenticateWithJwt, controller.update)
+    .delete(authenticateWithJwt, controller.delete);
 
 module.exports = router;

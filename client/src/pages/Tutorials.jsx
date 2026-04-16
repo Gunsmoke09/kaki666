@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Loader, Pagination, Button, Alert, Group, TextInput, Select, Stack, Title } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import TutorialList from '../components/Tutorial/TutorialList';
 import TutorialForm from '../components/Tutorial/TutorialForm';
 import { buildApiUrl } from '../utils/api';
@@ -19,15 +18,11 @@ const Tutorials = () => {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('difficulty');
   const [sortOrder, setSortOrder] = useState('asc');
-  const navigate = useNavigate();
+
   const token = getAuthToken();
+  const isLoggedIn = Boolean(token);
 
   const fetchTutorials = useCallback(async () => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
@@ -40,9 +35,7 @@ const Tutorials = () => {
         sortOrder,
       });
 
-      const response = await fetch(buildApiUrl(`/tutorials?${params.toString()}`), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(buildApiUrl(`/tutorials?${params.toString()}`));
 
       if (!response.ok) {
         throw new Error(await readApiError(response, `Error: ${response.statusText}`));
@@ -58,13 +51,18 @@ const Tutorials = () => {
     } finally {
       setLoading(false);
     }
-  }, [navigate, page, search, sortBy, sortOrder, token]);
+  }, [page, search, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchTutorials();
   }, [fetchTutorials]);
 
   const createTutorial = async (tutorialData) => {
+    if (!isLoggedIn) {
+      setError('Please log in to create tutorials.');
+      return;
+    }
+
     const response = await fetch(buildApiUrl('/tutorials'), {
       method: 'POST',
       headers: {
@@ -87,7 +85,7 @@ const Tutorials = () => {
     <Stack>
       <Group justify="space-between">
         <Title order={2}>Tutorials</Title>
-        <Button onClick={() => setModalOpen(true)}>New Tutorial</Button>
+        {isLoggedIn ? <Button onClick={() => setModalOpen(true)}>New Tutorial</Button> : null}
       </Group>
 
       {error ? <Alert color="red">{error}</Alert> : null}
@@ -133,7 +131,7 @@ const Tutorials = () => {
 
       <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
 
-      {loading ? <Loader /> : <TutorialList tutorials={tutorials} onRefresh={fetchTutorials} />}
+      {loading ? <Loader /> : <TutorialList tutorials={tutorials} onRefresh={fetchTutorials} isLoggedIn={isLoggedIn} />}
     </Stack>
   );
 };
