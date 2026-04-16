@@ -3,6 +3,7 @@ import { Paper, Title, TextInput, PasswordInput, Button, Stack, Text, Alert } fr
 import { useNavigate, Link } from 'react-router-dom';
 import { buildApiUrl } from '../utils/api';
 import { setAuthToken } from '../utils/auth';
+import { readApiError } from '../utils/http';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -25,11 +26,11 @@ export default function Login() {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(await readApiError(response, 'Login failed'));
       }
+
+      const data = await response.json();
 
       if (!data.token) {
         throw new Error('Login failed: token missing in response');

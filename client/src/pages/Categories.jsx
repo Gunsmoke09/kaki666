@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button, Loader, Alert, Group, Title, Pagination, TextInput, Select, Stack } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import CategoryList from '../components/Category/CategoryList';
 import CategoryForm from '../components/Category/CategoryForm';
 import CategoryDeleteConfirm from '../components/Category/CategoryDeleteConfirm';
@@ -24,15 +23,10 @@ function Categories() {
   const [search, setSearch] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
 
-  const navigate = useNavigate();
   const token = getAuthToken();
+  const isLoggedIn = Boolean(token);
 
   const fetchCategories = useCallback(async () => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
@@ -45,9 +39,7 @@ function Categories() {
         sortOrder,
       });
 
-      const response = await fetch(buildApiUrl(`/categories?${params.toString()}`), {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(buildApiUrl(`/categories?${params.toString()}`));
 
       if (!response.ok) {
         throw new Error(await readApiError(response, `Failed to fetch categories: ${response.status}`));
@@ -63,13 +55,24 @@ function Categories() {
     } finally {
       setLoading(false);
     }
-  }, [navigate, page, search, sortOrder, token]);
+  }, [page, search, sortOrder]);
 
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
+  const requireAuth = () => {
+    if (isLoggedIn) {
+      return true;
+    }
+
+    setError('Please log in to manage categories.');
+    return false;
+  };
+
   const handleCreateCategory = async (categoryData) => {
+    if (!requireAuth()) return;
+
     const response = await fetch(buildApiUrl('/categories'), {
       method: 'POST',
       headers: {
@@ -89,6 +92,8 @@ function Categories() {
   };
 
   const handleUpdateCategory = async (categoryData) => {
+    if (!requireAuth()) return;
+
     const response = await fetch(buildApiUrl(`/categories/${selectedCategory._id}`), {
       method: 'PUT',
       headers: {
@@ -108,6 +113,8 @@ function Categories() {
   };
 
   const handleDeleteCategory = async () => {
+    if (!requireAuth()) return;
+
     const response = await fetch(buildApiUrl(`/categories/${selectedCategory._id}`), {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
@@ -129,7 +136,9 @@ function Categories() {
     <Stack>
       <Group justify="space-between" mb="md">
         <Title order={2}>Categories</Title>
-        <Button onClick={() => { setIsUpdateMode(false); setSelectedCategory(null); setModalOpened(true); }}>Create Category</Button>
+        {isLoggedIn ? (
+          <Button onClick={() => { setIsUpdateMode(false); setSelectedCategory(null); setModalOpened(true); }}>Create Category</Button>
+        ) : null}
       </Group>
 
       {error ? <Alert color="red">{error}</Alert> : null}
@@ -161,7 +170,7 @@ function Categories() {
         categories={categories}
         onEdit={(category) => { setIsUpdateMode(true); setSelectedCategory(category); setModalOpened(true); }}
         onDelete={(category) => { setSelectedCategory(category); setDeleteDialogOpened(true); }}
-        isLoggedIn
+        isLoggedIn={isLoggedIn}
       />
 
       <Pagination value={page} onChange={setPage} total={totalPages} withEdges />

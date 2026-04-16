@@ -116,7 +116,6 @@ exports.list = [
         const sortOrder = req.query.sortOrder || "asc";
 
         const filters = {
-            author: req.user.user_id,
             title: new RegExp(search, "i"),
         };
 
@@ -182,7 +181,7 @@ exports.list = [
 ];
 
 exports.detail = asyncHandler(async (req, res) => {
-    const tutorial = await Tutorial.findOne({ _id: req.params.id, author: req.user.user_id })
+    const tutorial = await Tutorial.findById(req.params.id)
         .populate("categories")
         .populate("material.material");
 
@@ -228,10 +227,14 @@ exports.create = [
 ];
 
 exports.delete = asyncHandler(async (req, res) => {
-    const tutorial = await Tutorial.findOne({ _id: req.params.id, author: req.user.user_id }).exec();
+    const tutorial = await Tutorial.findById(req.params.id).exec();
 
     if (tutorial == null) {
         return res.status(404).json({ error: "Tutorial not found" });
+    }
+
+    if (String(tutorial.author) !== req.user.user_id) {
+        return res.status(403).json({ error: "Forbidden: you can only delete your own tutorial" });
     }
 
     await Tutorial.deleteOne({ _id: req.params.id, author: req.user.user_id });
@@ -245,6 +248,16 @@ exports.update = [
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
+        }
+
+        const existingTutorial = await Tutorial.findById(req.params.id).exec();
+
+        if (existingTutorial == null) {
+            return res.status(404).json({ error: "Tutorial not found" });
+        }
+
+        if (String(existingTutorial.author) !== req.user.user_id) {
+            return res.status(403).json({ error: "Forbidden: you can only update your own tutorial" });
         }
 
         const relatedError = await ensureRelatedRecordsBelongToUser(
@@ -272,10 +285,6 @@ exports.update = [
             },
             { new: true, runValidators: true },
         );
-
-        if (updatedTutorial == null) {
-            return res.status(404).json({ error: "Tutorial not found" });
-        }
 
         return res.status(200).json(updatedTutorial);
     }),

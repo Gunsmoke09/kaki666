@@ -1,20 +1,18 @@
 import { useState } from 'react';
 import { Card, Text, Button, Group, Alert } from '@mantine/core';
-import { useNavigate } from 'react-router-dom';
 import TutorialForm from './TutorialForm';
 import { buildApiUrl } from '../../utils/api';
 import { getAuthToken } from '../../utils/auth';
 import { readApiError } from '../../utils/http';
 
-const TutorialItem = ({ tutorial, onRefresh }) => {
+const TutorialItem = ({ tutorial, onRefresh, isLoggedIn }) => {
   const [modalOpen, setModalOpened] = useState(false);
   const [itemError, setItemError] = useState('');
-  const navigate = useNavigate();
 
   const updateTutorial = async (tutorialData) => {
     const token = getAuthToken();
     if (!token) {
-      navigate('/login');
+      setItemError('Please log in to edit tutorials.');
       return;
     }
 
@@ -39,7 +37,7 @@ const TutorialItem = ({ tutorial, onRefresh }) => {
   const deleteTutorial = async () => {
     const token = getAuthToken();
     if (!token) {
-      navigate('/login');
+      setItemError('Please log in to delete tutorials.');
       return;
     }
 
@@ -72,10 +70,12 @@ const TutorialItem = ({ tutorial, onRefresh }) => {
         {tutorial.material?.map((item) => `${item.material?.name || 'Unknown'} (${item.quantity} ${item.unit})`).join(', ') || 'None'}
       </Text>
 
-      <Group mt="sm">
-        <Button size="xs" onClick={() => setModalOpened(true)}>Edit</Button>
-        <Button size="xs" color="red" variant="outline" onClick={deleteTutorial}>Delete</Button>
-      </Group>
+      {isLoggedIn ? (
+        <Group mt="sm">
+          <Button size="xs" onClick={() => setModalOpened(true)}>Edit</Button>
+          <Button size="xs" color="red" variant="outline" onClick={deleteTutorial}>Delete</Button>
+        </Group>
+      ) : null}
 
       {modalOpen ? (
         <TutorialForm action="Edit" tutorial={tutorial} opened={modalOpen} onSubmit={updateTutorial} onClose={() => setModalOpened(false)} />

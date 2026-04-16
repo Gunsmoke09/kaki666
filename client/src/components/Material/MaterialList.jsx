@@ -1,6 +1,6 @@
 import { Card, Button, Text, Group, SimpleGrid } from '@mantine/core';
 
-const MaterialList = ({ materials, onEdit, onDelete }) => {
+const MaterialList = ({ materials, onEdit, onDelete, isLoggedIn }) => {
   if (!materials.length) {
     return <Text c="dimmed">No materials available.</Text>;
   }
@@ -12,10 +12,12 @@ const MaterialList = ({ materials, onEdit, onDelete }) => {
           <Text fw={500} size="lg">{material.name}</Text>
           <Text c="dimmed" size="sm">Purchase source: {material.purchaseSource || 'N/A'}</Text>
 
-          <Group justify="right" mt="md">
-            <Button variant="outline" onClick={() => onEdit(material)}>Edit</Button>
-            <Button color="red" variant="outline" onClick={() => onDelete(material)}>Delete</Button>
-          </Group>
+          {isLoggedIn ? (
+            <Group justify="right" mt="md">
+              <Button variant="outline" onClick={() => onEdit(material)}>Edit</Button>
+              <Button color="red" variant="outline" onClick={() => onDelete(material)}>Delete</Button>
+            </Group>
+          ) : null}
         </Card>
       ))}
     </SimpleGrid>

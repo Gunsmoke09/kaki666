@@ -26,7 +26,6 @@ exports.list = [
         const sortBy = req.query.sortBy || "name";
         const sortOrder = req.query.sortOrder || "asc";
         const filters = {
-            owner: req.user.user_id,
             name: new RegExp(search, "i"),
         };
 
@@ -52,7 +51,7 @@ exports.list = [
 ];
 
 exports.detail = asyncHandler(async (req, res) => {
-    const category = await Category.findOne({ _id: req.params.id, owner: req.user.user_id }).lean().exec();
+    const category = await Category.findById(req.params.id).lean().exec();
 
     if (category === null) {
         return res.status(404).json({ error: "Category not found" });
@@ -80,10 +79,14 @@ exports.create = [
 ];
 
 exports.delete = asyncHandler(async (req, res) => {
-    const category = await Category.findOne({ _id: req.params.id, owner: req.user.user_id }).exec();
+    const category = await Category.findById(req.params.id).exec();
 
     if (category == null) {
         return res.status(404).json({ error: "Category not found" });
+    }
+
+    if (String(category.owner) !== req.user.user_id) {
+        return res.status(403).json({ error: "Forbidden: you can only delete your own category" });
     }
 
     await Category.deleteOne({ _id: req.params.id, owner: req.user.user_id });
@@ -99,6 +102,16 @@ exports.update = [
             return res.status(400).json({ errors: errors.array() });
         }
 
+        const existingCategory = await Category.findById(req.params.id).exec();
+
+        if (existingCategory == null) {
+            return res.status(404).json({ error: "Category not found" });
+        }
+
+        if (String(existingCategory.owner) !== req.user.user_id) {
+            return res.status(403).json({ error: "Forbidden: you can only update your own category" });
+        }
+
         const updatedCategory = await Category.findOneAndUpdate(
             { _id: req.params.id, owner: req.user.user_id },
             {
@@ -108,10 +121,6 @@ exports.update = [
             },
             { new: true, runValidators: true },
         );
-
-        if (updatedCategory == null) {
-            return res.status(404).json({ error: "Category not found" });
-        }
 
         return res.status(200).json(updatedCategory);
     }),

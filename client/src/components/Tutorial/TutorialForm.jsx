@@ -14,7 +14,6 @@ import {
   Alert,
 } from '@mantine/core';
 import { buildApiUrl } from '../../utils/api';
-import { getAuthToken } from '../../utils/auth';
 
 const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
   const [title, setTitle] = useState('');
@@ -68,12 +67,10 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const token = getAuthToken();
-
       try {
         const [categoryResponse, materialResponse] = await Promise.all([
-          fetch(buildApiUrl('/categories?page=1&limit=100'), { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(buildApiUrl('/materials?page=1&limit=100'), { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(buildApiUrl('/categories?page=1&limit=100')),
+          fetch(buildApiUrl('/materials?page=1&limit=100')),
         ]);
 
         const categoryData = await categoryResponse.json();

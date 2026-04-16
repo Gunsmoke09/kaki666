@@ -31,7 +31,6 @@ exports.list = [
         const sortOrder = req.query.sortOrder || "asc";
 
         const filters = {
-            owner: req.user.user_id,
             $or: [
                 { name: new RegExp(search, "i") },
                 { purchaseSource: new RegExp(search, "i") },
@@ -60,7 +59,7 @@ exports.list = [
 ];
 
 exports.detail = asyncHandler(async (req, res) => {
-    const material = await Material.findOne({ _id: req.params.id, owner: req.user.user_id }).lean().exec();
+    const material = await Material.findById(req.params.id).lean().exec();
 
     if (material === null) {
         return res.status(404).json({ error: "Material not found" });
@@ -89,10 +88,14 @@ exports.create = [
 ];
 
 exports.delete = asyncHandler(async (req, res) => {
-    const material = await Material.findOne({ _id: req.params.id, owner: req.user.user_id }).exec();
+    const material = await Material.findById(req.params.id).exec();
 
     if (material == null) {
         return res.status(404).json({ error: "Material not found" });
+    }
+
+    if (String(material.owner) !== req.user.user_id) {
+        return res.status(403).json({ error: "Forbidden: you can only delete your own material" });
     }
 
     await Material.deleteOne({ _id: req.params.id, owner: req.user.user_id });
@@ -108,6 +111,16 @@ exports.update = [
             return res.status(400).json({ errors: errors.array() });
         }
 
+        const existingMaterial = await Material.findById(req.params.id).exec();
+
+        if (existingMaterial == null) {
+            return res.status(404).json({ error: "Material not found" });
+        }
+
+        if (String(existingMaterial.owner) !== req.user.user_id) {
+            return res.status(403).json({ error: "Forbidden: you can only update your own material" });
+        }
+
         const updatedMaterial = await Material.findOneAndUpdate(
             { _id: req.params.id, owner: req.user.user_id },
             {
@@ -118,10 +131,6 @@ exports.update = [
             },
             { new: true, runValidators: true },
         );
-
-        if (updatedMaterial == null) {
-            return res.status(404).json({ error: "Material not found" });
-        }
 
         return res.status(200).json(updatedMaterial);
     }),
