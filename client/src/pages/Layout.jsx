@@ -1,71 +1,67 @@
 import { useState, useEffect } from 'react';
-import { AppShell, Container, Group, Anchor, Text, Space } from '@mantine/core';
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { AppShell, Container, Group, Anchor, Text } from '@mantine/core';
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 
 const links = [
   { link: '/', label: 'Home' },
-  { link: '/tasks', label: 'Tasks' },
+  { link: '/tutorials', label: 'Tutorials' },
   { link: '/categories', label: 'Categories' },
+  { link: '/materials', label: 'Materials' },
   { link: '/about', label: 'About' },
 ];
 
 function Layout() {
-  const [active, setActive] = useState(links[0].link);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Check if the user is logged in (based on a JWT or user info in localStorage)
   useEffect(() => {
     const token = localStorage.getItem('jwt');
     setIsAuthenticated(!!token);
-  }, []);
+  }, [location.pathname]);
 
-  // Logout function to remove JWT and update state
   const handleLogout = () => {
     localStorage.removeItem('jwt');
     setIsAuthenticated(false);
-    navigate('/');  // Redirect to Home after logout
+    navigate('/');
   };
 
-  // Dynamically create menu items based on authentication status
   const items = links.map((link) => (
     <Anchor
       key={link.label}
       component={Link}
       to={link.link}
-      onClick={() => setActive(link.link)}
       style={{ marginRight: '15px' }}
-      color={active === link.link ? 'blue' : 'gray'}
+      color={location.pathname === link.link ? 'blue' : 'gray'}
+      underline="never"
     >
       {link.label}
     </Anchor>
   ));
 
   return (
-    <AppShell
-      header={{ height: 50, padding: 'md' }}
-      padding="md"
-      navbarOffsetBreakpoint="sm"
-    >
-      {/* Header */}
+    <AppShell header={{ height: 60 }} padding="md">
       <AppShell.Header>
-        <Container size="md">
-          <Group position="apart">
-            <Text size="xl" weight={500}>Task Manager</Text>
-            <Group spacing="xs" align="center">
+        <Container size="lg" h="100%">
+          <Group justify="space-between" h="100%">
+            <Text size="xl" fw={700} c="blue">
+              Handcraft Tutorial
+            </Text>
+
+            <Group gap="xs">
               {items}
-              {/* Conditionally render login, register, or logout links */}
+
               {!isAuthenticated ? (
                 <>
-                  <Anchor component={Link} to="/login" color="blue">
+                  <Anchor component={Link} to="/login" color="blue" underline="never">
                     Login
                   </Anchor>
-                  <Anchor component={Link} to="/register" color="blue">
+                  <Anchor component={Link} to="/register" color="blue" underline="never">
                     Register
                   </Anchor>
                 </>
               ) : (
-                <Anchor component="button" onClick={handleLogout}>
+                <Anchor component="button" onClick={handleLogout} color="blue" underline="never">
                   Logout
                 </Anchor>
               )}
@@ -74,9 +70,10 @@ function Layout() {
         </Container>
       </AppShell.Header>
 
-      {/* Main Content (Where React Router Renders Pages) */}
       <AppShell.Main>
-        <Outlet />
+        <Container size="lg" py="xl">
+          <Outlet />
+        </Container>
       </AppShell.Main>
     </AppShell>
   );

@@ -1,13 +1,13 @@
-// CategoryManagement.js
 import React, { useState, useEffect } from 'react';
-import { Button, Loader, Alert, Modal, Group } from '@mantine/core';
+import { Button, Loader, Alert, Group, Title, Text } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 import CategoryList from '../components/Category/CategoryList';
 import CategoryForm from '../components/Category/CategoryForm';
 import CategoryDeleteConfirm from '../components/Category/CategoryDeleteConfirm';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const CategoryManagement = () => {
+function Categories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,97 +16,140 @@ const CategoryManagement = () => {
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
+  const navigate = useNavigate();
+  const token = localStorage.getItem('jwt');
+  const isLoggedIn = !!token;
+
   useEffect(() => {
     fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
     setLoading(true);
-    const token = localStorage.getItem('jwt');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    
+    setError(null);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/categories`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await fetch(`${API_BASE_URL}/categories`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch categories: ${response.status}`);
+      }
+
       const data = await response.json();
-      setCategories(data);
+      setCategories(Array.isArray(data) ? data : []);
     } catch (err) {
-      setError('Failed to fetch categories');
+      setError(err.message || 'Failed to fetch categories');
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreateCategory = async (categoryData) => {
-    const token = localStorage.getItem('jwt');
-    if (!token) {
-      setLoading(false);
+    if (!isLoggedIn) {
+      navigate('/login');
       return;
     }
-    const response = await fetch(`${API_BASE_URL}/categories`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(categoryData),
-    });
 
-    if (response.ok) fetchCategories();
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(categoryData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create category: ${response.status}`);
+      }
+
+      setModalOpened(false);
+      await fetchCategories();
+    } catch (err) {
+      setError(err.message || 'Failed to create category');
+    }
   };
 
   const handleUpdateCategory = async (categoryData) => {
-    const token = localStorage.getItem('jwt');
-    if (!token) {
-      setLoading(false);
+    if (!isLoggedIn || !selectedCategory) {
+      navigate('/login');
       return;
     }
-    const response = await fetch(`${API_BASE_URL}/categories/${selectedCategory._id}`, {
-      method: 'PUT',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(categoryData),
-    });
 
-    if (response.ok) fetchCategories();
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories/${selectedCategory._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(categoryData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update category: ${response.status}`);
+      }
+
+      setModalOpened(false);
+      setSelectedCategory(null);
+      await fetchCategories();
+    } catch (err) {
+      setError(err.message || 'Failed to update category');
+    }
   };
 
   const handleDeleteCategory = async () => {
-    const token = localStorage.getItem('jwt');
-    if (!token) {
-      setLoading(false);
+    if (!isLoggedIn || !selectedCategory) {
+      navigate('/login');
       return;
     }
-    const response = await fetch(`${API_BASE_URL}/categories/${selectedCategory._id}`, {
-      method: 'DELETE',
-      headers: { 
-        'Authorization': `Bearer ${token}`
-      },
-    });
 
-    if (response.ok) fetchCategories();
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories/${selectedCategory._id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete category: ${response.status}`);
+      }
+
+      setDeleteDialogOpened(false);
+      setSelectedCategory(null);
+      await fetchCategories();
+    } catch (err) {
+      setError(err.message || 'Failed to delete category');
+    }
   };
 
   const openCreateModal = () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
     setIsUpdateMode(false);
+    setSelectedCategory(null);
     setModalOpened(true);
   };
 
   const openUpdateModal = (category) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
     setIsUpdateMode(true);
     setSelectedCategory(category);
     setModalOpened(true);
   };
 
   const openDeleteDialog = (category) => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
     setSelectedCategory(category);
     setDeleteDialogOpened(true);
   };
@@ -116,11 +159,19 @@ const CategoryManagement = () => {
 
   return (
     <div>
-      <Button onClick={openCreateModal}>Create Category</Button>
+      <Group justify="space-between" mb="md">
+        <div>
+          <Title order={2}>Categories</Title>
+        </div>
+
+        <Button onClick={openCreateModal}>Create Category</Button>
+      </Group>
+
       <CategoryList
         categories={categories}
         onEdit={openUpdateModal}
         onDelete={openDeleteDialog}
+        isLoggedIn={isLoggedIn}
       />
 
       <CategoryForm
@@ -139,6 +190,6 @@ const CategoryManagement = () => {
       />
     </div>
   );
-};
+}
 
-export default CategoryManagement;
+export default Categories;

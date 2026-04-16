@@ -89,3 +89,6 @@
 ::ffff:127.0.0.1 - - [16/Apr/2026:02:25:39 +0000] "POST /api/categories HTTP/1.1" 201 64 "-" "HoppscotchKernel/0.2.0"
 ::ffff:127.0.0.1 - - [16/Apr/2026:02:25:58 +0000] "GET /api/categories?page=1&limit=5 HTTP/1.1" 200 487 "-" "HoppscotchKernel/0.2.0"
 ::ffff:127.0.0.1 - - [16/Apr/2026:02:26:28 +0000] "GET /api/categories?page=1&limit=6 HTTP/1.1" 200 586 "-" "HoppscotchKernel/0.2.0"
+::ffff:127.0.0.1 - - [16/Apr/2026:02:44:53 +0000] "GET /api/auth/login HTTP/1.1" 404 153 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+::ffff:127.0.0.1 - - [16/Apr/2026:02:47:09 +0000] "GET /api/auth/login HTTP/1.1" 404 153 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+::ffff:127.0.0.1 - - [16/Apr/2026:05:10:42 +0000] "POST /api/auth/register HTTP/1.1" 201 42 "-" "HoppscotchKernel/0.2.0"
