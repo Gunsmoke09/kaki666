@@ -6,7 +6,7 @@ import { buildApiUrl } from '../utils/api';
 import { getAuthToken } from '../utils/auth';
 import { parseLinkHeader, pageFromLink, readApiError } from '../utils/http';
 
-const PAGE_LIMIT = 10;
+const PAGE_LIMIT = 9;
 
 const Materials = () => {
   const [materials, setMaterials] = useState([]);
@@ -18,8 +18,9 @@ const Materials = () => {
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sort, setSort] = useState('name_asc');
 
   const token = getAuthToken();
   const isLoggedIn = Boolean(token);
@@ -33,8 +34,7 @@ const Materials = () => {
         page: String(page),
         limit: String(PAGE_LIMIT),
         search,
-        sortBy: 'name',
-        sortOrder,
+        sort,
       });
 
       const response = await fetch(buildApiUrl(`/materials?${params.toString()}`));
@@ -53,7 +53,7 @@ const Materials = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search, sortOrder]);
+  }, [page, search, sort]);
 
   useEffect(() => {
     fetchMaterials();
@@ -140,24 +140,24 @@ const Materials = () => {
 
       {error ? <Alert color="red">{error}</Alert> : null}
 
-      <Group>
+      <Group align="end" wrap="wrap">
         <TextInput
-          placeholder="Search by name or purchase source"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.currentTarget.value);
-            setPage(1);
-          }}
+          placeholder="Search by name"
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.currentTarget.value)}
         />
+        <Button onClick={() => { setSearch(searchInput.trim()); setPage(1); }}>
+          Search
+        </Button>
         <Select
           label="Sort"
-          value={sortOrder}
+          value={sort}
           data={[
-            { value: 'asc', label: 'Name A-Z' },
-            { value: 'desc', label: 'Name Z-A' },
+            { value: 'name_asc', label: 'Name ascending' },
+            { value: 'name_desc', label: 'Name descending' },
           ]}
           onChange={(value) => {
-            setSortOrder(value || 'asc');
+            setSort(value || 'name_asc');
             setPage(1);
           }}
         />
@@ -170,7 +170,9 @@ const Materials = () => {
         isLoggedIn={isLoggedIn}
       />
 
-      <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
+      <Group justify="center">
+        <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
+      </Group>
 
       <MaterialForm
         opened={modalOpened}

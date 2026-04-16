@@ -17,8 +17,7 @@ const materialValidator = () => [
 
 exports.list = [
     query("search").optional().trim(),
-    query("sortBy").optional().isIn(["name"]).withMessage("sortBy must be name"),
-    query("sortOrder").optional().isIn(["asc", "desc"]).withMessage("sortOrder must be asc or desc"),
+    query("sort").optional().isIn(["name_asc", "name_desc"]).withMessage("sort must be name_asc or name_desc"),
 
     asyncHandler(async (req, res) => {
         const errors = validationResult(req);
@@ -27,20 +26,17 @@ exports.list = [
         }
 
         const search = req.query.search || req.query.name || "";
-        const sortBy = req.query.sortBy || "name";
-        const sortOrder = req.query.sortOrder || "asc";
+        const sort = req.query.sort || "name_asc";
+        const sortOrder = sort === "name_desc" ? "desc" : "asc";
 
         const filters = {
-            $or: [
-                { name: new RegExp(search, "i") },
-                { purchaseSource: new RegExp(search, "i") },
-            ],
+            name: new RegExp(search, "i"),
         };
 
         const materialPage = await Material.paginate(filters, {
             page: req.paginate.page,
             limit: req.paginate.limit,
-            sort: { [sortBy]: sortOrder },
+            sort: { name: sortOrder },
             lean: true,
         });
 

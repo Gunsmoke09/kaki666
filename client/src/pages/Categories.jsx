@@ -8,7 +8,7 @@ import { buildApiUrl } from '../utils/api';
 import { getAuthToken } from '../utils/auth';
 import { parseLinkHeader, pageFromLink, readApiError } from '../utils/http';
 
-const PAGE_LIMIT = 10;
+const PAGE_LIMIT = 9;
 
 function Categories() {
   const [categories, setCategories] = useState([]);
@@ -20,8 +20,9 @@ function Categories() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sort, setSort] = useState('name_asc');
 
   const token = getAuthToken();
   const isLoggedIn = Boolean(token);
@@ -35,8 +36,7 @@ function Categories() {
         page: String(page),
         limit: String(PAGE_LIMIT),
         search,
-        sortBy: 'name',
-        sortOrder,
+        sort,
       });
 
       const response = await fetch(buildApiUrl(`/categories?${params.toString()}`));
@@ -55,7 +55,7 @@ function Categories() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, sortOrder]);
+  }, [page, search, sort]);
 
   useEffect(() => {
     fetchCategories();
@@ -143,24 +143,24 @@ function Categories() {
 
       {error ? <Alert color="red">{error}</Alert> : null}
 
-      <Group>
+      <Group align="end" wrap="wrap">
         <TextInput
           placeholder="Search by name"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.currentTarget.value);
-            setPage(1);
-          }}
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.currentTarget.value)}
         />
+        <Button onClick={() => { setSearch(searchInput.trim()); setPage(1); }}>
+          Search
+        </Button>
         <Select
           label="Sort"
-          value={sortOrder}
+          value={sort}
           data={[
-            { value: 'asc', label: 'Name A-Z' },
-            { value: 'desc', label: 'Name Z-A' },
+            { value: 'name_asc', label: 'Name ascending' },
+            { value: 'name_desc', label: 'Name descending' },
           ]}
           onChange={(value) => {
-            setSortOrder(value || 'asc');
+            setSort(value || 'name_asc');
             setPage(1);
           }}
         />
@@ -173,7 +173,9 @@ function Categories() {
         isLoggedIn={isLoggedIn}
       />
 
-      <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
+      <Group justify="center">
+        <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
+      </Group>
 
       <CategoryForm
         opened={modalOpened}

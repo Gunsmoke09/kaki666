@@ -6,7 +6,7 @@ import { buildApiUrl } from '../utils/api';
 import { getAuthToken } from '../utils/auth';
 import { parseLinkHeader, pageFromLink, readApiError } from '../utils/http';
 
-const PAGE_LIMIT = 10;
+const PAGE_LIMIT = 9;
 
 const Tutorials = () => {
   const [tutorials, setTutorials] = useState([]);
@@ -15,9 +15,9 @@ const Tutorials = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('difficulty');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sort, setSort] = useState('difficulty_asc');
 
   const token = getAuthToken();
   const isLoggedIn = Boolean(token);
@@ -31,8 +31,7 @@ const Tutorials = () => {
         page: String(page),
         limit: String(PAGE_LIMIT),
         search,
-        sortBy,
-        sortOrder,
+        sort,
       });
 
       const response = await fetch(buildApiUrl(`/tutorials?${params.toString()}`));
@@ -51,7 +50,7 @@ const Tutorials = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search, sortBy, sortOrder]);
+  }, [page, search, sort]);
 
   useEffect(() => {
     fetchTutorials();
@@ -90,38 +89,29 @@ const Tutorials = () => {
 
       {error ? <Alert color="red">{error}</Alert> : null}
 
-      <Group>
+      <Group align="end" wrap="wrap">
         <TextInput
           placeholder="Search by title"
-          value={search}
-          onChange={(event) => {
-            setSearch(event.currentTarget.value);
-            setPage(1);
-          }}
+          value={searchInput}
+          onChange={(event) => setSearchInput(event.currentTarget.value)}
         />
+        <Button onClick={() => { setSearch(searchInput.trim()); setPage(1); }}>
+          Search
+        </Button>
 
         <Select
-          label="Sort By"
-          value={sortBy}
+          label="Sort"
+          value={sort}
           data={[
-            { value: 'difficulty', label: 'Difficulty' },
-            { value: 'AverageTimeSpentMinutes', label: 'Time spent' },
+            { value: 'name_asc', label: 'Name ascending' },
+            { value: 'name_desc', label: 'Name descending' },
+            { value: 'difficulty_asc', label: 'From easiest' },
+            { value: 'difficulty_desc', label: 'From hardest' },
+            { value: 'time_asc', label: 'From least time spent' },
+            { value: 'time_desc', label: 'From most time spent' },
           ]}
           onChange={(value) => {
-            setSortBy(value || 'difficulty');
-            setPage(1);
-          }}
-        />
-
-        <Select
-          label="Order"
-          value={sortOrder}
-          data={[
-            { value: 'asc', label: 'Ascending' },
-            { value: 'desc', label: 'Descending' },
-          ]}
-          onChange={(value) => {
-            setSortOrder(value || 'asc');
+            setSort(value || 'difficulty_asc');
             setPage(1);
           }}
         />
@@ -129,7 +119,9 @@ const Tutorials = () => {
 
       <TutorialForm opened={modalOpen} onClose={() => setModalOpen(false)} onSubmit={createTutorial} action="New" />
 
-      <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
+      <Group justify="center">
+        <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
+      </Group>
 
       {loading ? <Loader /> : <TutorialList tutorials={tutorials} onRefresh={fetchTutorials} isLoggedIn={isLoggedIn} />}
     </Stack>

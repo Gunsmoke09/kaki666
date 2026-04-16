@@ -45,7 +45,7 @@ function Layout() {
       <AppShell.Header>
         <Container size="lg" h="100%">
           <Group justify="space-between" h="100%">
-            <Text size="xl" fw={700} c="blue">
+            <Text component={Link} to="/" size="xl" fw={700} c="blue" td="none">
               Handcraft Tutorial
             </Text>
 
