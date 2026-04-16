@@ -26,7 +26,7 @@ const validatePaginateQueryParams = [
         }
 
         req.paginate.page = parseInt(req.query.page, 10) || 1;
-        req.paginate.limit = Math.min(parseInt(req.query.limit, 10) || 10, 10);
+        req.paginate.limit = Math.min(parseInt(req.query.limit, 10) || 10, 100);
 
         next();
     }

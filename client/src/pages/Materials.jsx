@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Loader, Alert, Modal, Text, Group } from '@mantine/core';
+import { useState, useEffect, useCallback } from 'react';
+import { Button, Loader, Alert, Modal, Text, Group, Pagination, TextInput, Select, Stack, Title } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import MaterialList from '../components/Material/MaterialList';
 import MaterialForm from '../components/Material/MaterialForm';
 import { buildApiUrl } from '../utils/api';
 import { getAuthToken } from '../utils/auth';
+import { parseLinkHeader, pageFromLink, readApiError } from '../utils/http';
+
+const PAGE_LIMIT = 10;
 
 const Materials = () => {
   const [materials, setMaterials] = useState([]);
@@ -14,166 +17,152 @@ const Materials = () => {
   const [deleteDialogOpened, setDeleteDialogOpened] = useState(false);
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState('');
+  const [sortOrder, setSortOrder] = useState('asc');
   const navigate = useNavigate();
+  const token = getAuthToken();
 
-  useEffect(() => {
-    fetchMaterials();
-  }, []);
+  const fetchMaterials = useCallback(async () => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
 
-  const fetchMaterials = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(buildApiUrl('/materials'));
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(PAGE_LIMIT),
+        search,
+        sortBy: 'name',
+        sortOrder,
+      });
+
+      const response = await fetch(buildApiUrl(`/materials?${params.toString()}`), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch materials');
+        throw new Error(await readApiError(response, 'Failed to fetch materials'));
       }
 
       const data = await response.json();
-      setMaterials(data);
+      setMaterials(Array.isArray(data) ? data : []);
+
+      const links = parseLinkHeader(response.headers.get('Link'));
+      setTotalPages(pageFromLink(links.last) || 1);
     } catch (err) {
-      setError('Failed to fetch materials');
+      setError(err.message || 'Failed to fetch materials');
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate, page, search, sortOrder, token]);
+
+  useEffect(() => {
+    fetchMaterials();
+  }, [fetchMaterials]);
 
   const handleCreateMaterial = async (materialData) => {
-    const token = getAuthToken();
-    if (!token) {
-      navigate('/login');
-      return false;
+    const response = await fetch(buildApiUrl('/materials'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(materialData),
+    });
+
+    if (!response.ok) {
+      throw new Error(await readApiError(response, 'Failed to create material'));
     }
 
-    try {
-      const response = await fetch(buildApiUrl('/materials'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(materialData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create material');
-      }
-
-      await fetchMaterials();
-      return true;
-    } catch (err) {
-      setError('Failed to create material');
-      return false;
-    }
+    setPage(1);
+    setModalOpened(false);
+    await fetchMaterials();
   };
 
   const handleUpdateMaterial = async (materialData) => {
-    const token = getAuthToken();
-    if (!token || !selectedMaterial) {
-      navigate('/login');
-      return false;
+    const response = await fetch(buildApiUrl(`/materials/${selectedMaterial._id}`), {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(materialData),
+    });
+
+    if (!response.ok) {
+      throw new Error(await readApiError(response, 'Failed to update material'));
     }
 
-    try {
-      const response = await fetch(buildApiUrl(`/materials/${selectedMaterial._id}`), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(materialData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update material');
-      }
-
-      setSelectedMaterial(null);
-      await fetchMaterials();
-      return true;
-    } catch (err) {
-      setError('Failed to update material');
-      return false;
-    }
+    setSelectedMaterial(null);
+    setModalOpened(false);
+    await fetchMaterials();
   };
 
   const handleDeleteMaterial = async () => {
-    const token = getAuthToken();
-    if (!token || !selectedMaterial) {
-      navigate('/login');
+    const response = await fetch(buildApiUrl(`/materials/${selectedMaterial._id}`), {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      setError(await readApiError(response, 'Failed to delete material'));
       return;
     }
 
-    try {
-      const response = await fetch(buildApiUrl(`/materials/${selectedMaterial._id}`), {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete material');
-      }
-
-      setDeleteDialogOpened(false);
-      setSelectedMaterial(null);
-      await fetchMaterials();
-    } catch (err) {
-      setError('Failed to delete material');
-    }
-  };
-
-  const openCreateModal = () => {
-    setIsUpdateMode(false);
-    setSelectedMaterial(null);
-    setModalOpened(true);
-  };
-
-  const openUpdateModal = (material) => {
-    const token = getAuthToken();
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    setIsUpdateMode(true);
-    setSelectedMaterial(material);
-    setModalOpened(true);
-  };
-
-  const openDeleteDialog = (material) => {
-    const token = getAuthToken();
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    setSelectedMaterial(material);
-    setDeleteDialogOpened(true);
-  };
-
-  const closeDeleteDialog = () => {
     setDeleteDialogOpened(false);
     setSelectedMaterial(null);
+    await fetchMaterials();
   };
 
   if (loading) return <Loader />;
-  if (error) return <Alert color="red">{error}</Alert>;
 
   return (
-    <div>
-      <Button onClick={openCreateModal} mb="md">
-        Create Material
-      </Button>
+    <Stack>
+      <Group justify="space-between">
+        <Title order={2}>Materials</Title>
+        <Button onClick={() => { setIsUpdateMode(false); setSelectedMaterial(null); setModalOpened(true); }}>
+          Create Material
+        </Button>
+      </Group>
+
+      {error ? <Alert color="red">{error}</Alert> : null}
+
+      <Group>
+        <TextInput
+          placeholder="Search by name or purchase source"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.currentTarget.value);
+            setPage(1);
+          }}
+        />
+        <Select
+          label="Sort"
+          value={sortOrder}
+          data={[
+            { value: 'asc', label: 'Name A-Z' },
+            { value: 'desc', label: 'Name Z-A' },
+          ]}
+          onChange={(value) => {
+            setSortOrder(value || 'asc');
+            setPage(1);
+          }}
+        />
+      </Group>
 
       <MaterialList
         materials={materials}
-        onEdit={openUpdateModal}
-        onDelete={openDeleteDialog}
+        onEdit={(material) => { setIsUpdateMode(true); setSelectedMaterial(material); setModalOpened(true); }}
+        onDelete={(material) => { setSelectedMaterial(material); setDeleteDialogOpened(true); }}
       />
+
+      <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
 
       <MaterialForm
         opened={modalOpened}
@@ -184,19 +173,13 @@ const Materials = () => {
         onUpdate={handleUpdateMaterial}
       />
 
-      <Modal
-        opened={deleteDialogOpened}
-        onClose={closeDeleteDialog}
-        title="Delete Material"
-        centered
-      >
+      <Modal opened={deleteDialogOpened} onClose={() => setDeleteDialogOpened(false)} title="Delete Material" centered>
         <Text mb="md">
-          Are you sure you want to delete{' '}
-          <strong>{selectedMaterial?.name}</strong>?
+          Are you sure you want to delete <strong>{selectedMaterial?.name}</strong>?
         </Text>
 
         <Group justify="flex-end">
-          <Button variant="default" onClick={closeDeleteDialog}>
+          <Button variant="default" onClick={() => setDeleteDialogOpened(false)}>
             Cancel
           </Button>
           <Button color="red" onClick={handleDeleteMaterial}>
@@ -204,7 +187,7 @@ const Materials = () => {
           </Button>
         </Group>
       </Modal>
-    </div>
+    </Stack>
   );
 };
 

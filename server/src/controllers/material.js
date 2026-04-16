@@ -4,16 +4,21 @@ const { generatePaginationLinks } = require("../utils/generatePaginationLinks");
 
 const { body, query, validationResult } = require("express-validator");
 
-const materialValidator = () => {
-    return [
-        body('name')
-            .notEmpty().withMessage('name is required')
-            .isString().withMessage('name must be a string'),
-    ];
-};
+const materialValidator = () => [
+    body("name")
+        .trim()
+        .notEmpty().withMessage("name is required")
+        .isString().withMessage("name must be a string"),
+    body("purchaseSource")
+        .optional({ values: "falsy" })
+        .trim()
+        .isString().withMessage("purchaseSource must be a string"),
+];
 
 exports.list = [
-    query("name").optional().trim(),
+    query("search").optional().trim(),
+    query("sortBy").optional().isIn(["name"]).withMessage("sortBy must be name"),
+    query("sortOrder").optional().isIn(["asc", "desc"]).withMessage("sortOrder must be asc or desc"),
 
     asyncHandler(async (req, res) => {
         const errors = validationResult(req);
@@ -21,13 +26,22 @@ exports.list = [
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const name = req.query.name || "";
-        const filters = { name: new RegExp(name, "i") };
+        const search = req.query.search || req.query.name || "";
+        const sortBy = req.query.sortBy || "name";
+        const sortOrder = req.query.sortOrder || "asc";
+
+        const filters = {
+            owner: req.user.user_id,
+            $or: [
+                { name: new RegExp(search, "i") },
+                { purchaseSource: new RegExp(search, "i") },
+            ],
+        };
 
         const materialPage = await Material.paginate(filters, {
             page: req.paginate.page,
             limit: req.paginate.limit,
-            sort: { name: "asc" },
+            sort: { [sortBy]: sortOrder },
             lean: true,
         });
 
@@ -46,7 +60,7 @@ exports.list = [
 ];
 
 exports.detail = asyncHandler(async (req, res) => {
-    const material = await Material.findById(req.params.id).exec();
+    const material = await Material.findOne({ _id: req.params.id, owner: req.user.user_id }).lean().exec();
 
     if (material === null) {
         return res.status(404).json({ error: "Material not found" });
@@ -65,6 +79,8 @@ exports.create = [
 
         const material = new Material({
             name: req.body.name,
+            purchaseSource: req.body.purchaseSource || "",
+            owner: req.user.user_id,
         });
 
         await material.save();
@@ -73,14 +89,14 @@ exports.create = [
 ];
 
 exports.delete = asyncHandler(async (req, res) => {
-    const material = await Material.findById(req.params.id).exec();
+    const material = await Material.findOne({ _id: req.params.id, owner: req.user.user_id }).exec();
 
     if (material == null) {
-        return res.status(404).json({ error: 'Material not found' });
+        return res.status(404).json({ error: "Material not found" });
     }
 
-    await Material.findByIdAndDelete(req.params.id);
-    return res.status(200).json({ message: 'Material deleted successfully' });
+    await Material.deleteOne({ _id: req.params.id, owner: req.user.user_id });
+    return res.status(200).json({ message: "Material deleted successfully" });
 });
 
 exports.update = [
@@ -92,20 +108,20 @@ exports.update = [
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const material = await Material.findOne({ _id: req.params.id });
-        if (material == null) {
-            return res.status(404).json({ error: 'Material not found' });
-        }
-
         const updatedMaterial = await Material.findOneAndUpdate(
-            { _id: req.params.id },
+            { _id: req.params.id, owner: req.user.user_id },
             {
                 $set: {
                     name: req.body.name,
+                    purchaseSource: req.body.purchaseSource || "",
                 },
             },
             { new: true, runValidators: true },
         );
+
+        if (updatedMaterial == null) {
+            return res.status(404).json({ error: "Material not found" });
+        }
 
         return res.status(200).json(updatedMaterial);
     }),
