@@ -10,7 +10,7 @@ const categoryValidator = () => {
             .notEmpty().withMessage('name is required')
             .isString().withMessage('name must be a string'),
     ];
-}
+};
 
 exports.list = [
     query("name").optional().trim(),
@@ -28,36 +28,36 @@ exports.list = [
             page: req.paginate.page,
             limit: req.paginate.limit,
             sort: { name: "asc" },
-            lean: true
+            lean: true,
         });
 
-        res
+        return res
             .status(200)
             .links(
                 generatePaginationLinks(
                     req.originalUrl,
                     req.paginate.page,
                     categoryPage.totalPages,
-                    req.paginate.limit
-                )
+                    req.paginate.limit,
+                ),
             )
             .json(categoryPage.docs);
-    })
+    }),
 ];
 
-exports.detail = asyncHandler(async (req, res, next) => {
+exports.detail = asyncHandler(async (req, res) => {
     const category = await Category.findById(req.params.id).exec();
 
     if (category === null) {
-        res.status(404).json({ error: "Category not found" });
+        return res.status(404).json({ error: "Category not found" });
     }
 
-    res.json(category);
+    return res.json(category);
 });
 
 exports.create = [
     categoryValidator(),
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -65,37 +65,34 @@ exports.create = [
 
         const category = new Category({
             name: req.body.name,
-            description: req.body.description
+            description: req.body.description,
         });
 
         await category.save();
-        res.status(201).json(category);
-    })
+        return res.status(201).json(category);
+    }),
 ];
 
-exports.delete = asyncHandler(async (req, res, next) => {
-
+exports.delete = asyncHandler(async (req, res) => {
     const category = await Category.findById(req.params.id).exec();
 
     if (category == null) {
-        return res.status(240404).json({ error: 'Category not found' });
+        return res.status(404).json({ error: 'Category not found' });
     }
 
     await Category.findByIdAndDelete(req.params.id);
-    res.status(200);
+    return res.status(200).json({ message: 'Category deleted successfully' });
 });
-
 
 exports.update = [
     categoryValidator(),
 
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        // Check if the Category exists
         const category = await Category.findOne({ _id: req.params.id });
         if (category == null) {
             return res.status(404).json({ error: 'Category not found' });
@@ -106,11 +103,11 @@ exports.update = [
             {
                 $set: {
                     name: req.body.name,
-                }
+                },
             },
-            { new: true, runValidators: true } // `new: true` returns the updated document
+            { new: true, runValidators: true },
         );
-        
-        res.status(200).json(updatedCategory);
+
+        return res.status(200).json(updatedCategory);
     }),
 ];

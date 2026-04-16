@@ -1,12 +1,47 @@
-import { Paper, Title, TextInput, PasswordInput, Button, Stack, Text } from '@mantine/core';
+import { useState } from 'react';
+import { Paper, Title, TextInput, PasswordInput, Button, Stack, Text, Alert } from '@mantine/core';
 import { useNavigate, Link } from 'react-router-dom';
+import { buildApiUrl } from '../utils/api';
+import { setAuthToken } from '../utils/auth';
 
 export default function Login() {
   const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    navigate('/');
+    setError('');
+    setSubmitting(true);
+
+    try {
+      const response = await fetch(buildApiUrl('/auth/login'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      if (!data.token) {
+        throw new Error('Login failed: token missing in response');
+      }
+
+      setAuthToken(data.token, true);
+      navigate('/');
+    } catch (err) {
+      setError(err.message || 'Login failed');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -21,10 +56,24 @@ export default function Login() {
             Login to continue to your handcraft learning journey
           </Text>
 
-          <TextInput label="Username" placeholder="Your username" required />
-          <PasswordInput label="Password" placeholder="Enter your password" required />
+          {error ? <Alert color="red">{error}</Alert> : null}
 
-          <Button type="submit" fullWidth radius="xl" mt="sm">
+          <TextInput
+            label="Username"
+            placeholder="Your username"
+            required
+            value={username}
+            onChange={(event) => setUsername(event.currentTarget.value)}
+          />
+          <PasswordInput
+            label="Password"
+            placeholder="Enter your password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.currentTarget.value)}
+          />
+
+          <Button type="submit" fullWidth radius="xl" mt="sm" loading={submitting}>
             Login
           </Button>
 

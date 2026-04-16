@@ -10,10 +10,10 @@ import {
   Select,
   NumberInput,
   Stack,
-  Text
+  Text,
 } from '@mantine/core';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { buildApiUrl } from '../../utils/api';
+import { getAuthToken } from '../../utils/auth';
 
 const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
   const [title, setTitle] = useState('');
@@ -29,8 +29,13 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
   const [selectedMaterials, setSelectedMaterials] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    if (!opened) {
+      return;
+    }
+
     if (tutorial) {
       setTitle(tutorial.title || '');
       setDescription(tutorial.description || '');
@@ -39,20 +44,21 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
       setDifficulty(tutorial.difficulty || 'Beginner');
 
       setSelectedCategories(
-        tutorial.categories?.map((cat) => cat._id || cat) || []
+        tutorial.categories?.map((cat) => cat._id || cat) || [],
       );
 
       setSelectedMaterials(
         tutorial.material?.map((item) => ({
-          materialId:
-            item.materialId?._id ||
-            item.materialId ||
+          material:
             item.material?._id ||
             item.material ||
+            item.materialId?._id ||
+            item.materialId ||
             '',
           quantity: item.quantity || 1,
           unit: item.unit || '',
-        })) || []
+          note: item.note || '',
+        })) || [],
       );
     } else {
       setTitle('');
@@ -63,32 +69,27 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
       setSelectedCategories([]);
       setSelectedMaterials([]);
     }
-  }, [tutorial]);
+  }, [opened, tutorial]);
 
   const fetchData = async () => {
-    const token = localStorage.getItem('jwt');
+    const token = getAuthToken();
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     try {
       const [categoryResponse, materialResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/categories`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        fetch(`${API_BASE_URL}/materials`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }),
+        fetch(buildApiUrl('/categories'), { headers }),
+        fetch(buildApiUrl('/materials'), { headers }),
       ]);
 
       const categoryData = await categoryResponse.json();
       const materialData = await materialResponse.json();
 
-      setCategories(categoryData);
-      setMaterials(materialData);
+      setCategories(Array.isArray(categoryData) ? categoryData : []);
+      setMaterials(Array.isArray(materialData) ? materialData : []);
     } catch (err) {
       console.error(err);
+      setCategories([]);
+      setMaterials([]);
     } finally {
       setIsLoading(false);
     }
@@ -104,15 +105,15 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
   const handleMaterialChange = (index, field, value) => {
     setSelectedMaterials((prev) =>
       prev.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      )
+        i === index ? { ...item, [field]: value } : item,
+      ),
     );
   };
 
   const addMaterialRow = () => {
     setSelectedMaterials((prev) => [
       ...prev,
-      { materialId: '', quantity: 1, unit: '' },
+      { material: '', quantity: 1, unit: '', note: '' },
     ]);
   };
 
@@ -120,7 +121,9 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
     setSelectedMaterials((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setSubmitting(true);
+
     const tutorialData = {
       title,
       description,
@@ -129,14 +132,20 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
       difficulty,
       categories: selectedCategories,
       material: selectedMaterials.map((item) => ({
-        materialId: item.materialId,
+        material: item.material,
         quantity: Number(item.quantity),
         unit: item.unit,
+        note: item.note,
       })),
     };
 
-    onSubmit(tutorialData);
-    onClose();
+    const success = await onSubmit(tutorialData);
+
+    setSubmitting(false);
+
+    if (success) {
+      onClose();
+    }
   };
 
   return (
@@ -198,9 +207,9 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
                 value: mat._id,
                 label: mat.name,
               }))}
-              value={item.materialId}
+              value={item.material}
               onChange={(value) =>
-                handleMaterialChange(index, 'materialId', value || '')
+                handleMaterialChange(index, 'material', value || '')
               }
               placeholder="Select material"
             />
@@ -233,10 +242,10 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
         </Button>
 
         <Group justify="right" mt="md">
-          <Button variant="default" onClick={onClose}>
+          <Button variant="default" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>{action}</Button>
+          <Button onClick={handleSubmit} loading={submitting}>{action}</Button>
         </Group>
       </Stack>
     </Modal>

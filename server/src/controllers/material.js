@@ -10,7 +10,7 @@ const materialValidator = () => {
             .notEmpty().withMessage('name is required')
             .isString().withMessage('name must be a string'),
     ];
-}
+};
 
 exports.list = [
     query("name").optional().trim(),
@@ -28,36 +28,36 @@ exports.list = [
             page: req.paginate.page,
             limit: req.paginate.limit,
             sort: { name: "asc" },
-            lean: true
+            lean: true,
         });
 
-        res
+        return res
             .status(200)
             .links(
                 generatePaginationLinks(
                     req.originalUrl,
                     req.paginate.page,
                     materialPage.totalPages,
-                    req.paginate.limit
-                )
+                    req.paginate.limit,
+                ),
             )
             .json(materialPage.docs);
-    })
+    }),
 ];
 
-exports.detail = asyncHandler(async (req, res, next) => {
+exports.detail = asyncHandler(async (req, res) => {
     const material = await Material.findById(req.params.id).exec();
 
     if (material === null) {
-        res.status(404).json({ error: "Material not found" });
+        return res.status(404).json({ error: "Material not found" });
     }
 
-    res.json(material);
+    return res.json(material);
 });
 
 exports.create = [
     materialValidator(),
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -68,12 +68,11 @@ exports.create = [
         });
 
         await material.save();
-        res.status(201).json(material);
-    })
+        return res.status(201).json(material);
+    }),
 ];
 
-exports.delete = asyncHandler(async (req, res, next) => {
-
+exports.delete = asyncHandler(async (req, res) => {
     const material = await Material.findById(req.params.id).exec();
 
     if (material == null) {
@@ -81,20 +80,18 @@ exports.delete = asyncHandler(async (req, res, next) => {
     }
 
     await Material.findByIdAndDelete(req.params.id);
-    res.status(200);
+    return res.status(200).json({ message: 'Material deleted successfully' });
 });
-
 
 exports.update = [
     materialValidator(),
 
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        // Check if the Material exists
         const material = await Material.findOne({ _id: req.params.id });
         if (material == null) {
             return res.status(404).json({ error: 'Material not found' });
@@ -105,11 +102,11 @@ exports.update = [
             {
                 $set: {
                     name: req.body.name,
-                }
+                },
             },
-            { new: true, runValidators: true } // `new: true` returns the updated document
+            { new: true, runValidators: true },
         );
-        
-        res.status(200).json(updatedMaterial);
+
+        return res.status(200).json(updatedMaterial);
     }),
 ];

@@ -6,6 +6,15 @@ const asyncHandler = require("express-async-handler");
 const { body, query, validationResult } = require("express-validator");
 const { generatePaginationLinks } = require("../utils/generatePaginationLinks");
 
+const normalizeMaterialPayload = (material = []) => (
+    material.map((item) => ({
+        material: item.material || item.materialId,
+        quantity: item.quantity,
+        unit: item.unit,
+        note: item.note,
+    }))
+);
+
 const tutorialValidator = () => {
     return [
         body('title')
@@ -32,14 +41,14 @@ const tutorialValidator = () => {
             .optional()
             .isArray().withMessage('Categories must be an array')
             .custom((categories) => {
-                return categories.every(id => mongoose.Types.ObjectId.isValid(id));
+                return categories.every((id) => mongoose.Types.ObjectId.isValid(id));
             }).withMessage('Each category must be a valid MongoDB ObjectId'),
 
         body('material')
             .notEmpty().withMessage('Material is required')
             .isArray().withMessage('Material must be an array')
             .custom((material) => {
-                return material.every(item => mongoose.Types.ObjectId.isValid(item.material));
+                return material.every((item) => mongoose.Types.ObjectId.isValid(item.material || item.materialId));
             }).withMessage('Each material must have a valid material ID'),
 
         body('material.*.quantity')
@@ -52,9 +61,9 @@ const tutorialValidator = () => {
 
         body('material.*.note')
             .optional()
-            .isString().withMessage("Material note must be a string")
+            .isString().withMessage("Material note must be a string"),
     ];
-}
+};
 
 exports.list = [
     query('title').optional().trim(),
@@ -73,37 +82,45 @@ exports.list = [
             limit: req.paginate.limit,
             sort: { difficulty: 'asc' },
             lean: true,
-            populate: {
-                path: "categories",
-                select: "name"
-            }
+            populate: [
+                {
+                    path: "categories",
+                    select: "name",
+                },
+                {
+                    path: "material.material",
+                    select: "name",
+                },
+            ],
         });
 
-        res
+        return res
             .status(200)
             .links(generatePaginationLinks(
                 req.originalUrl,
                 req.paginate.page,
                 tutorialPage.totalPages,
-                req.paginate.limit
+                req.paginate.limit,
             ))
             .json(tutorialPage.docs);
-    })
+    }),
 ];
 
-exports.detail = asyncHandler(async (req, res, next) => {
-    const tutorial = await Tutorial.findById(req.params.id).populate("categories");
+exports.detail = asyncHandler(async (req, res) => {
+    const tutorial = await Tutorial.findById(req.params.id)
+        .populate("categories")
+        .populate("material.material");
 
     if (tutorial === null) {
-        res.status(404).json({ error: "Tutorial not found" });
+        return res.status(404).json({ error: "Tutorial not found" });
     }
 
-    res.json(tutorial);
+    return res.json(tutorial);
 });
 
 exports.create = [
     tutorialValidator(),
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
@@ -117,16 +134,15 @@ exports.create = [
             difficulty: req.body.difficulty,
             author: req.user.user_id,
             categories: req.body.categories || [],
-            material: req.body.material || []
+            material: normalizeMaterialPayload(req.body.material || []),
         });
 
         await tutorial.save();
-        res.status(201).json(tutorial);
-    })
+        return res.status(201).json(tutorial);
+    }),
 ];
 
-exports.delete = asyncHandler(async (req, res, next) => {
-
+exports.delete = asyncHandler(async (req, res) => {
     const tutorial = await Tutorial.findById(req.params.id).exec();
 
     if (tutorial == null) {
@@ -134,20 +150,18 @@ exports.delete = asyncHandler(async (req, res, next) => {
     }
 
     await Tutorial.findByIdAndDelete(req.params.id);
-    res.status(200);
+    return res.status(200).json({ message: 'Tutorial deleted successfully' });
 });
-
 
 exports.update = [
     tutorialValidator(),
 
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        // Check if the Tutorial exists
         const tutorial = await Tutorial.findOne({ _id: req.params.id });
         if (tutorial == null) {
             return res.status(404).json({ error: 'Tutorial not found' });
@@ -163,11 +177,11 @@ exports.update = [
                     AverageTimeSpentMinutes: req.body.AverageTimeSpentMinutes,
                     difficulty: req.body.difficulty,
                     categories: req.body.categories || [],
-                    material: req.body.material || []
-                }
+                    material: normalizeMaterialPayload(req.body.material || []),
+                },
             },
-            { new: true, runValidators: true } // `new: true` returns the updated document
+            { new: true, runValidators: true },
         );
-        res.status(200).json(updatedTutorial);
+        return res.status(200).json(updatedTutorial);
     }),
 ];

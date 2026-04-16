@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AppShell, Container, Group, Anchor, Text } from '@mantine/core';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { clearAuthToken, getAuthToken } from '../utils/auth';
 
 const links = [
   { link: '/', label: 'Home' },
@@ -16,12 +17,12 @@ function Layout() {
   const location = useLocation();
 
   useEffect(() => {
-    const token = localStorage.getItem('jwt');
+    const token = getAuthToken();
     setIsAuthenticated(!!token);
   }, [location.pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem('jwt');
+    clearAuthToken();
     setIsAuthenticated(false);
     navigate('/');
   };

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Loader, Alert, Modal, Text, Group } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 import MaterialList from '../components/Material/MaterialList';
 import MaterialForm from '../components/Material/MaterialForm';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { buildApiUrl } from '../utils/api';
+import { getAuthToken } from '../utils/auth';
 
 const Materials = () => {
   const [materials, setMaterials] = useState([]);
@@ -13,6 +14,7 @@ const Materials = () => {
   const [deleteDialogOpened, setDeleteDialogOpened] = useState(false);
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchMaterials();
@@ -22,19 +24,8 @@ const Materials = () => {
     setLoading(true);
     setError(null);
 
-    const token = localStorage.getItem('jwt');
-    if (!token) {
-      setError('You must be logged in to view materials.');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await fetch(`${API_BASE_URL}/materials`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(buildApiUrl('/materials'));
 
       if (!response.ok) {
         throw new Error('Failed to fetch materials');
@@ -50,14 +41,14 @@ const Materials = () => {
   };
 
   const handleCreateMaterial = async (materialData) => {
-    const token = localStorage.getItem('jwt');
+    const token = getAuthToken();
     if (!token) {
-      setError('You must be logged in to create materials.');
-      return;
+      navigate('/login');
+      return false;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/materials`, {
+      const response = await fetch(buildApiUrl('/materials'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,22 +61,23 @@ const Materials = () => {
         throw new Error('Failed to create material');
       }
 
-      setModalOpened(false);
       await fetchMaterials();
+      return true;
     } catch (err) {
       setError('Failed to create material');
+      return false;
     }
   };
 
   const handleUpdateMaterial = async (materialData) => {
-    const token = localStorage.getItem('jwt');
+    const token = getAuthToken();
     if (!token || !selectedMaterial) {
-      setError('You must be logged in to update materials.');
-      return;
+      navigate('/login');
+      return false;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/materials/${selectedMaterial._id}`, {
+      const response = await fetch(buildApiUrl(`/materials/${selectedMaterial._id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -98,23 +90,24 @@ const Materials = () => {
         throw new Error('Failed to update material');
       }
 
-      setModalOpened(false);
       setSelectedMaterial(null);
       await fetchMaterials();
+      return true;
     } catch (err) {
       setError('Failed to update material');
+      return false;
     }
   };
 
   const handleDeleteMaterial = async () => {
-    const token = localStorage.getItem('jwt');
+    const token = getAuthToken();
     if (!token || !selectedMaterial) {
-      setError('You must be logged in to delete materials.');
+      navigate('/login');
       return;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/materials/${selectedMaterial._id}`, {
+      const response = await fetch(buildApiUrl(`/materials/${selectedMaterial._id}`), {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -140,12 +133,24 @@ const Materials = () => {
   };
 
   const openUpdateModal = (material) => {
+    const token = getAuthToken();
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
     setIsUpdateMode(true);
     setSelectedMaterial(material);
     setModalOpened(true);
   };
 
   const openDeleteDialog = (material) => {
+    const token = getAuthToken();
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
     setSelectedMaterial(material);
     setDeleteDialogOpened(true);
   };

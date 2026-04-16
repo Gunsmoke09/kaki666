@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Loader, Alert, Group, Title, Text } from '@mantine/core';
+import { Button, Loader, Alert, Group, Title } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import CategoryList from '../components/Category/CategoryList';
 import CategoryForm from '../components/Category/CategoryForm';
 import CategoryDeleteConfirm from '../components/Category/CategoryDeleteConfirm';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { buildApiUrl } from '../utils/api';
+import { getAuthToken } from '../utils/auth';
 
 function Categories() {
   const [categories, setCategories] = useState([]);
@@ -17,7 +18,7 @@ function Categories() {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const navigate = useNavigate();
-  const token = localStorage.getItem('jwt');
+  const token = getAuthToken();
   const isLoggedIn = !!token;
 
   useEffect(() => {
@@ -29,7 +30,7 @@ function Categories() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/categories`);
+      const response = await fetch(buildApiUrl('/categories'));
 
       if (!response.ok) {
         throw new Error(`Failed to fetch categories: ${response.status}`);
@@ -51,7 +52,7 @@ function Categories() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/categories`, {
+      const response = await fetch(buildApiUrl('/categories'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +79,7 @@ function Categories() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/categories/${selectedCategory._id}`, {
+      const response = await fetch(buildApiUrl(`/categories/${selectedCategory._id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +107,7 @@ function Categories() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/categories/${selectedCategory._id}`, {
+      const response = await fetch(buildApiUrl(`/categories/${selectedCategory._id}`), {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
