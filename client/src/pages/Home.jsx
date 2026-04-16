@@ -34,7 +34,7 @@ export default function Home() {
 
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="lg">
         <Card component={Link} to="/tutorials" shadow="sm" padding="lg" radius="lg" withBorder style={{ textDecoration: 'none' }}>
-          <Image src={HOME_CARD_IMAGE_URLS.tutorials || FALLBACK_IMAGE} h={CARD_IMAGE_HEIGHT} fit="cover" radius="md" alt="Tutorials card image" />
+          <Image src={"/images/tutorials.jpg"} h={CARD_IMAGE_HEIGHT} fit="cover" radius="md" alt="Tutorials card image" />
           <Title order={3}>Tutorials</Title>
           <Text c="dimmed" mt="sm">
             Step-by-step guides for creative handcraft projects.
@@ -42,7 +42,7 @@ export default function Home() {
         </Card>
 
         <Card component={Link} to="/categories" shadow="sm" padding="lg" radius="lg" withBorder style={{ textDecoration: 'none' }}>
-          <Image src={HOME_CARD_IMAGE_URLS.categories || FALLBACK_IMAGE} h={CARD_IMAGE_HEIGHT} fit="cover" radius="md" alt="Categories card image" />
+          <Image src={"/images/categories.jpg"} h={CARD_IMAGE_HEIGHT} fit="cover" radius="md" alt="Categories card image" />
           <Title order={3}>Categories</Title>
           <Text c="dimmed" mt="sm">
             Browse by craft type and find what interests you quickly.
@@ -50,7 +50,7 @@ export default function Home() {
         </Card>
 
         <Card component={Link} to="/materials" shadow="sm" padding="lg" radius="lg" withBorder style={{ textDecoration: 'none' }}>
-          <Image src={HOME_CARD_IMAGE_URLS.materials || FALLBACK_IMAGE} h={CARD_IMAGE_HEIGHT} fit="cover" radius="md" alt="Materials card image" />
+          <Image src="/images/materials.jpg" h={CARD_IMAGE_HEIGHT} fit="cover" radius="md" alt="Materials card image" />
           <Title order={3}>Materials</Title>
           <Text c="dimmed" mt="sm">
             Discover tools and materials needed for each activity.
