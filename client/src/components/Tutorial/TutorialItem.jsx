@@ -67,7 +67,10 @@ const TutorialItem = ({ tutorial, onRefresh, isLoggedIn }) => {
       <Text c="dimmed">Categories: {tutorial.categories?.map((category) => category.name).join(', ') || 'None'}</Text>
       <Text c="dimmed">
         Materials:{' '}
-        {tutorial.material?.map((item) => `${item.material?.name || 'Unknown'} (${item.quantity} ${item.unit})`).join(', ') || 'None'}
+        {tutorial.material?.map((item) => {
+          const details = [item.quantity, item.unit].filter(Boolean).join(' ');
+          return `${item.material?.name || 'Unknown'}${details ? ` (${details})` : ''}`;
+        }).join(', ') || 'None'}
       </Text>
 
       {isLoggedIn ? (

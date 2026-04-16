@@ -54,12 +54,12 @@ const tutorialValidator = () => [
         .withMessage("Each material must have a valid material ID"),
 
     body("material.*.quantity")
-        .notEmpty().withMessage("Quantity is required")
+        .optional({ values: "falsy" })
         .isFloat({ min: 0.01 }).withMessage("Material quantity must be a positive number"),
 
     body("material.*.unit")
+        .optional({ values: "falsy" })
         .trim()
-        .notEmpty().withMessage("Unit is required")
         .isString().withMessage("Material unit must be a string"),
 
     body("material.*.note")
@@ -73,15 +73,14 @@ const difficultyOrder = {
     Advanced: 3,
 };
 
-const ensureRelatedRecordsBelongToUser = async (userId, categories = [], material = []) => {
+const ensureRelatedRecordsExist = async (categories = [], material = []) => {
     if (categories.length > 0) {
         const categoryCount = await Category.countDocuments({
             _id: { $in: categories },
-            owner: userId,
         });
 
         if (categoryCount !== categories.length) {
-            return "One or more categories are invalid for this user";
+            return "One or more categories are invalid";
         }
     }
 
@@ -89,11 +88,10 @@ const ensureRelatedRecordsBelongToUser = async (userId, categories = [], materia
     if (materialIds.length > 0) {
         const materialCount = await Material.countDocuments({
             _id: { $in: materialIds },
-            owner: userId,
         });
 
         if (materialCount !== materialIds.length) {
-            return "One or more materials are invalid for this user";
+            return "One or more materials are invalid";
         }
     }
 
@@ -102,8 +100,10 @@ const ensureRelatedRecordsBelongToUser = async (userId, categories = [], materia
 
 exports.list = [
     query("search").optional().trim(),
-    query("sortBy").optional().isIn(["difficulty", "AverageTimeSpentMinutes"]).withMessage("Invalid sortBy"),
-    query("sortOrder").optional().isIn(["asc", "desc"]).withMessage("sortOrder must be asc or desc"),
+    query("sort")
+        .optional()
+        .isIn(["name_asc", "name_desc", "difficulty_asc", "difficulty_desc", "time_asc", "time_desc"])
+        .withMessage("Invalid sort"),
 
     asyncHandler(async (req, res) => {
         const errors = validationResult(req);
@@ -112,17 +112,18 @@ exports.list = [
         }
 
         const search = req.query.search || req.query.title || "";
-        const sortBy = req.query.sortBy || "difficulty";
-        const sortOrder = req.query.sortOrder || "asc";
+        const sort = req.query.sort || "difficulty_asc";
 
         const filters = {
             title: new RegExp(search, "i"),
         };
 
-        const sortStage =
-            sortBy === "AverageTimeSpentMinutes"
-                ? { AverageTimeSpentMinutes: sortOrder === "desc" ? -1 : 1 }
-                : { difficultyRank: sortOrder === "desc" ? -1 : 1 };
+        let sortStage = { difficultyRank: 1 };
+        if (sort === "name_asc") sortStage = { title: 1 };
+        if (sort === "name_desc") sortStage = { title: -1 };
+        if (sort === "difficulty_desc") sortStage = { difficultyRank: -1 };
+        if (sort === "time_asc") sortStage = { AverageTimeSpentMinutes: 1 };
+        if (sort === "time_desc") sortStage = { AverageTimeSpentMinutes: -1 };
 
         const aggregation = [
             { $match: filters },
@@ -200,8 +201,7 @@ exports.create = [
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const relatedError = await ensureRelatedRecordsBelongToUser(
-            req.user.user_id,
+        const relatedError = await ensureRelatedRecordsExist(
             req.body.categories || [],
             req.body.material || [],
         );
@@ -260,8 +260,7 @@ exports.update = [
             return res.status(403).json({ error: "Forbidden: you can only update your own tutorial" });
         }
 
-        const relatedError = await ensureRelatedRecordsBelongToUser(
-            req.user.user_id,
+        const relatedError = await ensureRelatedRecordsExist(
             req.body.categories || [],
             req.body.material || [],
         );

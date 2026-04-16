@@ -47,7 +47,7 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
       setSelectedMaterials(
         tutorial.material?.map((item) => ({
           material: item.material?._id || item.material || item.materialId || '',
-          quantity: item.quantity || 1,
+          quantity: item.quantity ?? '',
           unit: item.unit || '',
           note: item.note || '',
         })) || [],
@@ -110,8 +110,8 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
       categories: selectedCategories,
       material: selectedMaterials.map((item) => ({
         material: item.material,
-        quantity: Number(item.quantity),
-        unit: item.unit,
+        quantity: item.quantity === '' || item.quantity == null ? undefined : Number(item.quantity),
+        unit: item.unit?.trim() || undefined,
         note: item.note,
       })),
     };
@@ -161,9 +161,9 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
                 required
               />
 
-              <NumberInput label="Quantity" value={item.quantity} onChange={(value) => handleMaterialChange(index, 'quantity', value || 1)} min={1} required />
+              <NumberInput label="Quantity (optional)" value={item.quantity} onChange={(value) => handleMaterialChange(index, 'quantity', value ?? '')} min={0.01} />
 
-              <TextInput label="Unit" value={item.unit} onChange={(e) => handleMaterialChange(index, 'unit', e.target.value)} required />
+              <TextInput label="Unit (optional)" value={item.unit} onChange={(e) => handleMaterialChange(index, 'unit', e.target.value)} />
 
               <Button type="button" color="red" variant="light" onClick={() => setSelectedMaterials((prev) => prev.filter((_, i) => i !== index))}>
                 Remove
@@ -171,7 +171,7 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
             </Group>
           ))}
 
-          <Button type="button" variant="light" onClick={() => setSelectedMaterials((prev) => [...prev, { material: '', quantity: 1, unit: '', note: '' }])}>
+          <Button type="button" variant="light" onClick={() => setSelectedMaterials((prev) => [...prev, { material: '', quantity: '', unit: '', note: '' }])}>
             Add Material
           </Button>
 
