@@ -8,4 +8,6 @@ const categorySchema = new mongoose.Schema({
     }
 });
 
+categorySchema.plugin(paginate);
+
 module.exports = mongoose.model("Category", categorySchema);

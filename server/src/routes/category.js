@@ -4,11 +4,12 @@ const controller = require("../controllers/category");
 
 const validateMongoId = require("../middleware/validateMongoId");
 const authenticateWithJwt = require("../middleware/authenticateWithJwt");
+const validatePaginateQueryParams = require("../middleware/validatePaginateQueryParams");
 
 const router = express.Router();
 
 router.route("/")
-  .get(controller.list)
+  .get(validatePaginateQueryParams, controller.list)
   .post(authenticateWithJwt, controller.create);
 
 router.route("/:id")

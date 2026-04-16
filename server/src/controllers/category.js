@@ -1,5 +1,6 @@
 const Category = require("../models/category");
 const asyncHandler = require("express-async-handler");
+const { generatePaginationLinks } = require("../utils/generatePaginationLinks");
 
 const { body, query, validationResult } = require("express-validator");
 
@@ -12,21 +13,35 @@ const categoryValidator = () => {
 }
 
 exports.list = [
-    query('name').optional().trim(),
+    query("name").optional().trim(),
 
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const name = req.query.name || '';
+        const name = req.query.name || "";
+        const filters = { name: new RegExp(name, "i") };
 
-        const cats = await Category
-            .find({ name: new RegExp(name, 'i') })
-            .sort({ name: 'asc' });
+        const categoryPage = await Category.paginate(filters, {
+            page: req.paginate.page,
+            limit: req.paginate.limit,
+            sort: { name: "asc" },
+            lean: true
+        });
 
-        res.status(200).json(cats);
+        res
+            .status(200)
+            .links(
+                generatePaginationLinks(
+                    req.originalUrl,
+                    req.paginate.page,
+                    categoryPage.totalPages,
+                    req.paginate.limit
+                )
+            )
+            .json(categoryPage.docs);
     })
 ];
 

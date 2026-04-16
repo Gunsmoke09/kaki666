@@ -1,5 +1,6 @@
 const Material = require("../models/material");
 const asyncHandler = require("express-async-handler");
+const { generatePaginationLinks } = require("../utils/generatePaginationLinks");
 
 const { body, query, validationResult } = require("express-validator");
 
@@ -12,21 +13,35 @@ const materialValidator = () => {
 }
 
 exports.list = [
-    query('name').optional().trim(),
+    query("name").optional().trim(),
 
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const name = req.query.name || '';
+        const name = req.query.name || "";
+        const filters = { name: new RegExp(name, "i") };
 
-        const cats = await Material
-            .find({ name: new RegExp(name, 'i') })
-            .sort({ name: 'asc' });
+        const materialPage = await Material.paginate(filters, {
+            page: req.paginate.page,
+            limit: req.paginate.limit,
+            sort: { name: "asc" },
+            lean: true
+        });
 
-        res.status(200).json(cats);
+        res
+            .status(200)
+            .links(
+                generatePaginationLinks(
+                    req.originalUrl,
+                    req.paginate.page,
+                    materialPage.totalPages,
+                    req.paginate.limit
+                )
+            )
+            .json(materialPage.docs);
     })
 ];
 
