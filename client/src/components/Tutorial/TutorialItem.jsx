@@ -1,25 +1,37 @@
 import { useState } from 'react';
 import { Card, Text, Button } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 import TutorialForm from './TutorialForm';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { buildApiUrl } from '../../utils/api';
+import { getAuthToken } from '../../utils/auth';
 
 const TutorialItem = ({ tutorial, setTutorials }) => {
   const [modalOpen, setModalOpened] = useState(false);
+  const navigate = useNavigate();
 
   const handleCancel = () => {
     setModalOpened(false);
   };
 
   const handleEditClick = () => {
+    const token = getAuthToken();
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
     setModalOpened(true);
   };
 
   const updateTutorial = async (tutorialData) => {
-    const token = localStorage.getItem('jwt');
+    const token = getAuthToken();
+    if (!token) {
+      navigate('/login');
+      return false;
+    }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/tutorials/${tutorial._id}`, {
+      const response = await fetch(buildApiUrl(`/tutorials/${tutorial._id}`), {
         method: 'PUT',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -36,13 +48,15 @@ const TutorialItem = ({ tutorial, setTutorials }) => {
 
       setTutorials((prevTutorials) =>
         prevTutorials.map((t) =>
-          t._id === tutorial._id ? updatedTutorial : t
-        )
+          t._id === tutorial._id ? updatedTutorial : t,
+        ),
       );
 
       setModalOpened(false);
+      return true;
     } catch (err) {
       console.error(err);
+      return false;
     }
   };
 
@@ -66,10 +80,10 @@ const TutorialItem = ({ tutorial, setTutorials }) => {
           Materials:{' '}
           {tutorial.material?.map((item) => {
             const materialName =
-              item.materialId?.name ||
               item.material?.name ||
-              item.materialId ||
+              item.materialId?.name ||
               item.material ||
+              item.materialId ||
               'Unknown material';
 
             return `${materialName} (${item.quantity} ${item.unit})`;

@@ -14,6 +14,8 @@ import NoPage from "./pages/NoPage";
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 
+const ROUTER_BASENAME = import.meta.env.VITE_ROUTER_BASENAME || '/';
+
 function App() {
   return (
     <MantineProvider
@@ -23,7 +25,7 @@ function App() {
         defaultRadius: 'md',
       }}
     >
-      <BrowserRouter basename="/assignment2">
+      <BrowserRouter basename={ROUTER_BASENAME}>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />

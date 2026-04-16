@@ -1,33 +1,27 @@
 import { useState, useEffect } from 'react';
-import { Loader, Pagination, Button } from '@mantine/core';
+import { Loader, Pagination, Button, Alert } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 import TutorialList from '../components/Tutorial/TutorialList';
 import TutorialForm from '../components/Tutorial/TutorialForm';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { buildApiUrl } from '../utils/api';
+import { getAuthToken } from '../utils/auth';
 
 const Tutorials = () => {
   const [tutorials, setTutorials] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [paginationLinks, setPaginationLinks] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTutorials = async () => {
       setLoading(true);
-
-      const token = localStorage.getItem('jwt');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+      setError('');
 
       try {
-        const response = await fetch(`${API_BASE_URL}/tutorials?page=${page}&limit=10`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(buildApiUrl(`/tutorials?page=${page}&limit=10`));
 
         if (!response.ok) throw new Error(`Error: ${response.statusText}`);
 
@@ -50,7 +44,7 @@ const Tutorials = () => {
           setPaginationLinks({});
         }
       } catch (err) {
-        console.error(err);
+        setError(err.message || 'Failed to fetch tutorials');
       } finally {
         setLoading(false);
       }
@@ -60,10 +54,17 @@ const Tutorials = () => {
   }, [page]);
 
   const createTutorial = async (tutorialData) => {
-    const token = localStorage.getItem('jwt');
+    const token = getAuthToken();
+
+    if (!token) {
+      navigate('/login');
+      return false;
+    }
+
+    setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/tutorials`, {
+      const response = await fetch(buildApiUrl('/tutorials'), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -72,20 +73,25 @@ const Tutorials = () => {
         body: JSON.stringify({ ...tutorialData }),
       });
 
-      if (!response.ok) throw new Error('Failed to create tutorial');
+      const body = await response.json();
 
-      const createdTutorial = await response.json();
+      if (!response.ok) {
+        throw new Error(body.error || 'Failed to create tutorial');
+      }
 
-      setTutorials((prev) => [createdTutorial, ...prev]);
-      setModalOpen(false);
+      setTutorials((prev) => [body, ...prev]);
+      return true;
     } catch (err) {
-      console.error(err);
+      setError(err.message || 'Failed to create tutorial');
+      return false;
     }
   };
 
   return (
     <>
       <h2>Tutorials</h2>
+
+      {error ? <Alert color="red" mb="md">{error}</Alert> : null}
 
       <Button onClick={() => setModalOpen(true)}>New Tutorial</Button>
 

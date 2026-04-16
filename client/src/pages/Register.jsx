@@ -1,12 +1,41 @@
-import { Paper, Title, TextInput, PasswordInput, Button, Stack, Text } from '@mantine/core';
+import { useState } from 'react';
+import { Paper, Title, TextInput, PasswordInput, Button, Stack, Text, Alert } from '@mantine/core';
 import { useNavigate, Link } from 'react-router-dom';
+import { buildApiUrl } from '../utils/api';
 
 export default function Register() {
   const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    navigate('/login');
+    setError('');
+    setSubmitting(true);
+
+    try {
+      const response = await fetch(buildApiUrl('/auth/register'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Register failed');
+      }
+
+      navigate('/login');
+    } catch (err) {
+      setError(err.message || 'Register failed');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -21,10 +50,24 @@ export default function Register() {
             Register to start your handcraft learning journey
           </Text>
 
-          <TextInput label="Name" placeholder="Your name" required />
-          <PasswordInput label="Password" placeholder="Create a password" required />
+          {error ? <Alert color="red">{error}</Alert> : null}
 
-          <Button type="submit" fullWidth radius="xl" mt="sm">
+          <TextInput
+            label="Username"
+            placeholder="Your username"
+            required
+            value={username}
+            onChange={(event) => setUsername(event.currentTarget.value)}
+          />
+          <PasswordInput
+            label="Password"
+            placeholder="Create a password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.currentTarget.value)}
+          />
+
+          <Button type="submit" fullWidth radius="xl" mt="sm" loading={submitting}>
             Register
           </Button>
 
