@@ -160,6 +160,13 @@ exports.delete = asyncHandler(async (req, res) => {
         return res.status(403).json({ error: "Forbidden: you can only delete your own category" });
     }
 
+    const tutorialUsingCategory = await Tutorial.exists({ categories: req.params.id });
+    if (tutorialUsingCategory) {
+        return res.status(400).json({
+            error: "Cannot delete category because it is used by one or more tutorials.",
+        });
+    }
+
     await Category.deleteOne({ _id: req.params.id, owner: req.user.user_id });
     return res.status(200).json({ message: "Category deleted successfully" });
 });

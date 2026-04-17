@@ -1,4 +1,5 @@
 const Material = require("../models/material");
+const Tutorial = require("../models/tutorial");
 const asyncHandler = require("express-async-handler");
 const { generatePaginationLinks } = require("../utils/generatePaginationLinks");
 
@@ -95,6 +96,13 @@ exports.delete = asyncHandler(async (req, res) => {
 
     if (String(material.owner) !== req.user.user_id) {
         return res.status(403).json({ error: "Forbidden: you can only delete your own material" });
+    }
+
+    const tutorialUsingMaterial = await Tutorial.exists({ "material.material": req.params.id });
+    if (tutorialUsingMaterial) {
+        return res.status(400).json({
+            error: "Cannot delete material because it is used by one or more tutorials.",
+        });
     }
 
     await Material.deleteOne({ _id: req.params.id, owner: req.user.user_id });
