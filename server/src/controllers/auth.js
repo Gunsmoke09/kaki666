@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
+const { body, validationResult } = require("express-validator");
 const User = require("../models/user");
 
 const ensureJwtSecret = () => {
@@ -8,47 +9,78 @@ const ensureJwtSecret = () => {
     }
 };
 
-exports.register = asyncHandler(async (req, res) => {
-    const { username, password } = req.body;
+const registerValidator = [
+    body("username")
+        .exists({ checkFalsy: true }).withMessage("username is required")
+        .bail()
+        .trim()
+        .isString().withMessage("username must be a string")
+        .bail()
+        .notEmpty().withMessage("username is required"),
+    body("password")
+        .exists({ checkFalsy: true }).withMessage("password is required")
+        .bail()
+        .isString().withMessage("password must be a string")
+        .bail()
+        .isLength({ min: 6 }).withMessage("password must be at least 6 characters"),
+];
 
-    if (!username || !password) {
-        return res.status(400).json({ error: "username and password are required" });
-    }
+const loginValidator = [
+    body("username")
+        .exists({ checkFalsy: true }).withMessage("username is required")
+        .bail()
+        .trim()
+        .isString().withMessage("username must be a string")
+        .bail()
+        .notEmpty().withMessage("username is required"),
+    body("password")
+        .exists({ checkFalsy: true }).withMessage("password is required")
+        .bail()
+        .isString().withMessage("password must be a string")
+        .bail()
+        .notEmpty().withMessage("password is required"),
+];
 
-    const normalizedUsername = String(username).trim();
-    if (!normalizedUsername) {
-        return res.status(400).json({ error: "username is required" });
-    }
+exports.register = [
+    ...registerValidator,
+    asyncHandler(async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-    if (String(password).length < 6) {
-        return res.status(400).json({ error: "password must be at least 6 characters" });
-    }
+        const normalizedUsername = String(req.body.username).trim();
+        const password = String(req.body.password);
 
-    const existingUser = await User.findOne({ username: normalizedUsername });
-    if (existingUser) {
-        return res.status(400).json({ error: "Username is already taken" });
-    }
+        const existingUser = await User.findOne({ username: normalizedUsername });
+        if (existingUser) {
+            return res.status(400).json({ error: "Username is already taken" });
+        }
 
-    const user = new User({ username: normalizedUsername, password });
-    await user.save();
-    res.status(201).json({ message: "User registered successfully" });
-});
+        const user = new User({ username: normalizedUsername, password });
+        await user.save();
+        res.status(201).json({ message: "User registered successfully" });
+    }),
+];
 
-exports.login = asyncHandler(async (req, res) => {
-    const { username, password } = req.body;
+exports.login = [
+    ...loginValidator,
+    asyncHandler(async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
 
-    if (!username || !password) {
-        return res.status(400).json({ error: "username and password are required" });
-    }
+        ensureJwtSecret();
 
-    ensureJwtSecret();
+        const normalizedUsername = String(req.body.username).trim();
+        const password = String(req.body.password);
+        const user = await User.findOne({ username: normalizedUsername });
+        if (!user || !(await user.comparePassword(password))) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
 
-    const normalizedUsername = String(username).trim();
-    const user = await User.findOne({ username: normalizedUsername });
-    if (!user || !(await user.comparePassword(password))) {
-        return res.status(401).json({ error: "Invalid credentials" });
-    }
-
-    const token = jwt.sign({ user_id: String(user._id) }, process.env.JWT_SECRET, { expiresIn: "1h" });
-    res.status(200).json({ token });
-});
+        const token = jwt.sign({ user_id: String(user._id) }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        res.status(200).json({ token });
+    }),
+];

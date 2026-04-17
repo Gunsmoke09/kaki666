@@ -125,11 +125,9 @@ const Materials = () => {
     await fetchMaterials();
   };
 
-  if (loading) return <Loader />;
-
   return (
     <Stack>
-      <Group justify="space-between">
+      <Group justify="space-between" wrap="wrap">
         <Title order={2}>Materials</Title>
         {isLoggedIn ? (
           <Button onClick={() => { setIsUpdateMode(false); setSelectedMaterial(null); setModalOpened(true); }}>
@@ -142,6 +140,7 @@ const Materials = () => {
 
       <Group align="end" wrap="wrap">
         <TextInput
+          style={{ flex: 1, minWidth: 220 }}
           placeholder="Search by name"
           value={searchInput}
           onChange={(event) => setSearchInput(event.currentTarget.value)}
@@ -150,6 +149,7 @@ const Materials = () => {
           Search
         </Button>
         <Select
+          style={{ minWidth: 240 }}
           label="Sort"
           value={sort}
           data={[
@@ -163,15 +163,17 @@ const Materials = () => {
         />
       </Group>
 
-      <MaterialList
-        materials={materials}
-        onEdit={(material) => { setIsUpdateMode(true); setSelectedMaterial(material); setModalOpened(true); }}
-        onDelete={(material) => { setSelectedMaterial(material); setDeleteDialogOpened(true); }}
-        isLoggedIn={isLoggedIn}
-      />
+      {loading ? <Loader /> : (
+        <MaterialList
+          materials={materials}
+          onEdit={(material) => { setIsUpdateMode(true); setSelectedMaterial(material); setModalOpened(true); }}
+          onDelete={(material) => { setSelectedMaterial(material); setDeleteDialogOpened(true); }}
+          isLoggedIn={isLoggedIn}
+        />
+      )}
 
-      <Group justify="center">
-        <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
+      <Group justify="center" mt="md">
+        <Pagination value={page} onChange={setPage} total={totalPages} withEdges size="md" radius="md" />
       </Group>
 
       <MaterialForm

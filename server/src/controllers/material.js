@@ -6,9 +6,12 @@ const { body, query, validationResult } = require("express-validator");
 
 const materialValidator = () => [
     body("name")
+        .exists({ checkFalsy: true }).withMessage("name is required")
+        .bail()
         .trim()
-        .notEmpty().withMessage("name is required")
-        .isString().withMessage("name must be a string"),
+        .isString().withMessage("name must be a string")
+        .bail()
+        .notEmpty().withMessage("name is required"),
     body("purchaseSource")
         .optional({ values: "falsy" })
         .trim()
@@ -73,8 +76,8 @@ exports.create = [
         }
 
         const material = new Material({
-            name: req.body.name,
-            purchaseSource: req.body.purchaseSource || "",
+            name: req.body.name.trim(),
+            purchaseSource: req.body.purchaseSource?.trim() || "",
             owner: req.user.user_id,
         });
 
@@ -121,8 +124,8 @@ exports.update = [
             { _id: req.params.id, owner: req.user.user_id },
             {
                 $set: {
-                    name: req.body.name,
-                    purchaseSource: req.body.purchaseSource || "",
+                    name: req.body.name.trim(),
+                    purchaseSource: req.body.purchaseSource?.trim() || "",
                 },
             },
             { new: true, runValidators: true },

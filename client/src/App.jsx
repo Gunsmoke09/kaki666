@@ -1,15 +1,18 @@
 import { MantineProvider } from '@mantine/core';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import Layout from "./pages/Layout";
-import Home from "./pages/Home";
-import Tutorials from "./pages/Tutorials";
-import Categories from "./pages/Categories";
-import Materials from "./pages/Materials";
-import About from "./pages/About";
+import Layout from './pages/Layout';
+import Home from './pages/Home';
+import Tutorials from './pages/Tutorials';
+import TutorialDetail from './pages/TutorialDetail';
+import Categories from './pages/Categories';
+import CategoryDetail from './pages/CategoryDetail';
+import Materials from './pages/Materials';
+import MaterialDetail from './pages/MaterialDetail';
+import About from './pages/About';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import NoPage from "./pages/NoPage";
+import NoPage from './pages/NoPage';
 
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
@@ -30,8 +33,11 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="tutorials" element={<Tutorials />} />
+            <Route path="tutorials/:id" element={<TutorialDetail />} />
             <Route path="categories" element={<Categories />} />
+            <Route path="categories/:id" element={<CategoryDetail />} />
             <Route path="materials" element={<Materials />} />
+            <Route path="materials/:id" element={<MaterialDetail />} />
             <Route path="about" element={<About />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />

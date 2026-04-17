@@ -7,6 +7,11 @@ const categorySchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
+    description: {
+        type: String,
+        default: "",
+        trim: true,
+    },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

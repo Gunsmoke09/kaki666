@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Modal, TextInput, Button, Group, Alert } from '@mantine/core';
+import { Modal, TextInput, Button, Group, Alert, Stack } from '@mantine/core';
 
 const MaterialForm = ({ opened, onClose, isUpdateMode, selectedMaterial, onCreate, onUpdate }) => {
   const [name, setName] = useState('');
@@ -26,7 +26,11 @@ const MaterialForm = ({ opened, onClose, isUpdateMode, selectedMaterial, onCreat
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const materialData = { name: name.trim(), purchaseSource: purchaseSource.trim() };
+    const materialData = {
+      name: name.trim(),
+      purchaseSource: purchaseSource.trim(),
+    };
+
     if (!materialData.name) {
       setFormError('Material name is required');
       return;
@@ -51,13 +55,15 @@ const MaterialForm = ({ opened, onClose, isUpdateMode, selectedMaterial, onCreat
   return (
     <Modal opened={opened} onClose={onClose} title={isUpdateMode ? 'Update Material' : 'Create Material'}>
       <form onSubmit={handleSubmit}>
-        {formError ? <Alert color="red" mb="sm">{formError}</Alert> : null}
-        <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <TextInput label="Purchase Source" value={purchaseSource} onChange={(e) => setPurchaseSource(e.target.value)} mt="sm" />
-        <Group justify="right" mt="md">
-          <Button type="button" variant="default" onClick={onClose} disabled={submitting}>Cancel</Button>
-          <Button type="submit" loading={submitting}>{isUpdateMode ? 'Update' : 'Create'}</Button>
-        </Group>
+        <Stack>
+          {formError ? <Alert color="red" mb="sm">{formError}</Alert> : null}
+          <TextInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+          <TextInput label="Purchase Source" value={purchaseSource} onChange={(e) => setPurchaseSource(e.target.value)} />
+          <Group justify="right" mt="md">
+            <Button type="button" variant="default" onClick={onClose} disabled={submitting}>Cancel</Button>
+            <Button type="submit" loading={submitting}>{isUpdateMode ? 'Update' : 'Create'}</Button>
+          </Group>
+        </Stack>
       </form>
     </Modal>
   );

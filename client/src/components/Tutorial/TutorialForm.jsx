@@ -151,8 +151,9 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
           <Text fw={500}>Materials</Text>
 
           {selectedMaterials.map((item, index) => (
-            <Group key={`${item.material || 'material'}-${index}`} grow align="end">
+            <Group key={`${item.material || 'material'}-${index}`} grow align="end" wrap="wrap">
               <Select
+                style={{ minWidth: 180, flex: 1 }}
                 label="Material"
                 data={materials.map((mat) => ({ value: mat._id, label: mat.name }))}
                 value={item.material}
@@ -161,9 +162,9 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
                 required
               />
 
-              <NumberInput label="Quantity (optional)" value={item.quantity} onChange={(value) => handleMaterialChange(index, 'quantity', value ?? '')} min={0.01} />
+              <NumberInput style={{ minWidth: 140 }} label="Quantity (optional)" value={item.quantity} onChange={(value) => handleMaterialChange(index, 'quantity', value ?? '')} min={0.01} />
 
-              <TextInput label="Unit (optional)" value={item.unit} onChange={(e) => handleMaterialChange(index, 'unit', e.target.value)} />
+              <TextInput style={{ minWidth: 120 }} label="Unit (optional)" value={item.unit} onChange={(e) => handleMaterialChange(index, 'unit', e.target.value)} />
 
               <Button type="button" color="red" variant="light" onClick={() => setSelectedMaterials((prev) => prev.filter((_, i) => i !== index))}>
                 Remove
