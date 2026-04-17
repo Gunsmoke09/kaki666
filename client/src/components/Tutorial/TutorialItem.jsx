@@ -63,6 +63,7 @@ const TutorialItem = ({ tutorial, onRefresh, isLoggedIn }) => {
       <Text fw={600} size="lg">{tutorial.title}</Text>
       <Text c="dimmed" mt={4}>Difficulty: {tutorial.difficulty}</Text>
       <Text c="dimmed">Time: {tutorial.AverageTimeSpentMinutes} minutes</Text>
+      <Text c="dimmed" lineClamp={3} mt="xs">Description: {tutorial.description}</Text>
       <Text c="dimmed" lineClamp={3} mt="xs">Instructions: {tutorial.instructions}</Text>
       <Text c="dimmed" mt="xs">Categories: {tutorial.categories?.map((category) => category.name).join(', ') || 'None'}</Text>
 

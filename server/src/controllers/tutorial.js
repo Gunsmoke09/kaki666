@@ -54,8 +54,9 @@ const tutorialValidator = () => [
         .isIn(["Beginner", "Intermediate", "Advanced"]).withMessage("Difficulty must be either Beginner, Intermediate, or Advanced"),
 
     body("categories")
-        .optional()
-        .isArray().withMessage("Categories must be an array")
+        .exists({ checkFalsy: true }).withMessage("At least one category is required")
+        .bail()
+        .isArray({ min: 1 }).withMessage("At least one category is required")
         .custom((categories) => categories.every((id) => mongoose.Types.ObjectId.isValid(id)))
         .withMessage("Each category must be a valid MongoDB ObjectId"),
 

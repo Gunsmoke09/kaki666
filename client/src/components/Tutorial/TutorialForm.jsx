@@ -101,6 +101,12 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
     setSubmitting(true);
     setFormError('');
 
+    if (selectedCategories.length === 0) {
+      setFormError('Please select at least one category.');
+      setSubmitting(false);
+      return;
+    }
+
     const tutorialData = {
       title: title.trim(),
       description: description.trim(),
@@ -146,6 +152,7 @@ const TutorialForm = ({ opened, onClose, onSubmit, action, tutorial }) => {
             value={selectedCategories}
             onChange={setSelectedCategories}
             placeholder="Select categories"
+            required
           />
 
           <Text fw={500}>Materials</Text>
