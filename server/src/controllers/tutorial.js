@@ -19,26 +19,38 @@ const normalizeMaterialPayload = (material = []) => (
 
 const tutorialValidator = () => [
     body("title")
+        .exists({ checkFalsy: true }).withMessage("Title is required")
+        .bail()
         .trim()
-        .notEmpty().withMessage("Title is required")
-        .isString().withMessage("Title must be a string"),
+        .isString().withMessage("Title must be a string")
+        .bail()
+        .notEmpty().withMessage("Title is required"),
 
     body("description")
+        .exists({ checkFalsy: true }).withMessage("Description is required")
+        .bail()
         .trim()
-        .notEmpty().withMessage("Description is required")
-        .isString().withMessage("Description must be a string"),
+        .isString().withMessage("Description must be a string")
+        .bail()
+        .notEmpty().withMessage("Description is required"),
 
     body("instructions")
+        .exists({ checkFalsy: true }).withMessage("Instructions are required")
+        .bail()
         .trim()
-        .notEmpty().withMessage("Instructions are required")
-        .isString().withMessage("Instructions must be a string"),
+        .isString().withMessage("Instructions must be a string")
+        .bail()
+        .notEmpty().withMessage("Instructions are required"),
 
     body("AverageTimeSpentMinutes")
-        .notEmpty().withMessage("Average Time Spent (per minutes) is required")
-        .isInt({ min: 0 }).withMessage("Average time spent must be a positive integer"),
+        .exists({ checkFalsy: true }).withMessage("Average Time Spent (per minutes) is required")
+        .bail()
+        .isFloat({ min: 0 }).withMessage("Average time spent must be a valid non-negative number")
+        .toFloat(),
 
     body("difficulty")
-        .notEmpty().withMessage("Difficulty is required")
+        .exists({ checkFalsy: true }).withMessage("Difficulty is required")
+        .bail()
         .isIn(["Beginner", "Intermediate", "Advanced"]).withMessage("Difficulty must be either Beginner, Intermediate, or Advanced"),
 
     body("categories")
@@ -48,8 +60,9 @@ const tutorialValidator = () => [
         .withMessage("Each category must be a valid MongoDB ObjectId"),
 
     body("material")
-        .notEmpty().withMessage("Material is required")
-        .isArray().withMessage("Material must be an array")
+        .exists({ checkFalsy: true }).withMessage("Material is required")
+        .bail()
+        .isArray({ min: 1 }).withMessage("Material must be a non-empty array")
         .custom((material) => material.every((item) => mongoose.Types.ObjectId.isValid(item.material || item.materialId)))
         .withMessage("Each material must have a valid material ID"),
 
@@ -64,6 +77,7 @@ const tutorialValidator = () => [
 
     body("material.*.note")
         .optional({ values: "falsy" })
+        .trim()
         .isString().withMessage("Material note must be a string"),
 ];
 
@@ -100,6 +114,7 @@ const ensureRelatedRecordsExist = async (categories = [], material = []) => {
 
 exports.list = [
     query("search").optional().trim(),
+    query("categoryId").optional().custom((value) => mongoose.Types.ObjectId.isValid(value)).withMessage("categoryId must be a valid MongoDB ObjectId"),
     query("sort")
         .optional()
         .isIn(["name_asc", "name_desc", "difficulty_asc", "difficulty_desc", "time_asc", "time_desc"])
@@ -117,6 +132,10 @@ exports.list = [
         const filters = {
             title: new RegExp(search, "i"),
         };
+
+        if (req.query.categoryId) {
+            filters.categories = new mongoose.Types.ObjectId(req.query.categoryId);
+        }
 
         let sortStage = { difficultyRank: 1 };
         if (sort === "name_asc") sortStage = { title: 1 };
@@ -211,10 +230,10 @@ exports.create = [
         }
 
         const tutorial = new Tutorial({
-            title: req.body.title,
-            description: req.body.description,
-            instructions: req.body.instructions,
-            AverageTimeSpentMinutes: req.body.AverageTimeSpentMinutes,
+            title: req.body.title.trim(),
+            description: req.body.description.trim(),
+            instructions: req.body.instructions.trim(),
+            AverageTimeSpentMinutes: Number(req.body.AverageTimeSpentMinutes),
             difficulty: req.body.difficulty,
             author: req.user.user_id,
             categories: req.body.categories || [],
@@ -273,10 +292,10 @@ exports.update = [
             { _id: req.params.id, author: req.user.user_id },
             {
                 $set: {
-                    title: req.body.title,
-                    description: req.body.description,
-                    instructions: req.body.instructions,
-                    AverageTimeSpentMinutes: req.body.AverageTimeSpentMinutes,
+                    title: req.body.title.trim(),
+                    description: req.body.description.trim(),
+                    instructions: req.body.instructions.trim(),
+                    AverageTimeSpentMinutes: Number(req.body.AverageTimeSpentMinutes),
                     difficulty: req.body.difficulty,
                     categories: req.body.categories || [],
                     material: normalizeMaterialPayload(req.body.material || []),

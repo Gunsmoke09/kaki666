@@ -130,11 +130,9 @@ function Categories() {
     await fetchCategories();
   };
 
-  if (loading) return <Loader />;
-
   return (
     <Stack>
-      <Group justify="space-between" mb="md">
+      <Group justify="space-between" mb="md" wrap="wrap">
         <Title order={2}>Categories</Title>
         {isLoggedIn ? (
           <Button onClick={() => { setIsUpdateMode(false); setSelectedCategory(null); setModalOpened(true); }}>Create Category</Button>
@@ -145,6 +143,7 @@ function Categories() {
 
       <Group align="end" wrap="wrap">
         <TextInput
+          style={{ flex: 1, minWidth: 220 }}
           placeholder="Search by name"
           value={searchInput}
           onChange={(event) => setSearchInput(event.currentTarget.value)}
@@ -153,6 +152,7 @@ function Categories() {
           Search
         </Button>
         <Select
+          style={{ minWidth: 240 }}
           label="Sort"
           value={sort}
           data={[
@@ -166,15 +166,17 @@ function Categories() {
         />
       </Group>
 
-      <CategoryList
-        categories={categories}
-        onEdit={(category) => { setIsUpdateMode(true); setSelectedCategory(category); setModalOpened(true); }}
-        onDelete={(category) => { setSelectedCategory(category); setDeleteDialogOpened(true); }}
-        isLoggedIn={isLoggedIn}
-      />
+      {loading ? <Loader /> : (
+        <CategoryList
+          categories={categories}
+          onEdit={(category) => { setIsUpdateMode(true); setSelectedCategory(category); setModalOpened(true); }}
+          onDelete={(category) => { setSelectedCategory(category); setDeleteDialogOpened(true); }}
+          isLoggedIn={isLoggedIn}
+        />
+      )}
 
-      <Group justify="center">
-        <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
+      <Group justify="center" mt="md">
+        <Pagination value={page} onChange={setPage} total={totalPages} withEdges size="md" radius="md" />
       </Group>
 
       <CategoryForm

@@ -82,7 +82,7 @@ const Tutorials = () => {
 
   return (
     <Stack>
-      <Group justify="space-between">
+      <Group justify="space-between" wrap="wrap">
         <Title order={2}>Tutorials</Title>
         {isLoggedIn ? <Button onClick={() => setModalOpen(true)}>New Tutorial</Button> : null}
       </Group>
@@ -91,6 +91,7 @@ const Tutorials = () => {
 
       <Group align="end" wrap="wrap">
         <TextInput
+          style={{ flex: 1, minWidth: 220 }}
           placeholder="Search by title"
           value={searchInput}
           onChange={(event) => setSearchInput(event.currentTarget.value)}
@@ -100,6 +101,7 @@ const Tutorials = () => {
         </Button>
 
         <Select
+          style={{ minWidth: 240 }}
           label="Sort"
           value={sort}
           data={[
@@ -119,11 +121,11 @@ const Tutorials = () => {
 
       <TutorialForm opened={modalOpen} onClose={() => setModalOpen(false)} onSubmit={createTutorial} action="New" />
 
-      <Group justify="center">
-        <Pagination value={page} onChange={setPage} total={totalPages} withEdges />
-      </Group>
-
       {loading ? <Loader /> : <TutorialList tutorials={tutorials} onRefresh={fetchTutorials} isLoggedIn={isLoggedIn} />}
+
+      <Group justify="center" mt="md">
+        <Pagination value={page} onChange={setPage} total={totalPages} withEdges size="md" radius="md" />
+      </Group>
     </Stack>
   );
 };

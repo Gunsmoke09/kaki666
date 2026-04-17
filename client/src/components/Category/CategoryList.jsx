@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, Button, Text, Group, SimpleGrid } from '@mantine/core';
 
 function CategoryList({ categories, onEdit, onDelete, isLoggedIn }) {
@@ -7,23 +8,32 @@ function CategoryList({ categories, onEdit, onDelete, isLoggedIn }) {
   }
 
   return (
-    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
+    <SimpleGrid cols={{ base: 1, xs: 2, lg: 3 }} spacing="lg" verticalSpacing="lg">
       {categories.map((category) => (
         <Card key={category._id} shadow="sm" padding="lg" radius="md" withBorder>
           <Text fw={600} size="lg">
             {category.name}
           </Text>
+          {category.description ? (
+            <Text c="dimmed" lineClamp={3} mt="xs">{category.description}</Text>
+          ) : null}
 
-          {isLoggedIn && (
-            <Group justify="right" mt="md">
-              <Button variant="outline" onClick={() => onEdit(category)}>
-                Edit
-              </Button>
-              <Button color="red" variant="outline" onClick={() => onDelete(category)}>
-                Delete
-              </Button>
-            </Group>
-          )}
+          <Group mt="md" wrap="wrap">
+            <Button component={Link} to={`/categories/${category._id}`} variant="light">
+              View Details
+            </Button>
+
+            {isLoggedIn && (
+              <>
+                <Button variant="outline" onClick={() => onEdit(category)}>
+                  Edit
+                </Button>
+                <Button color="red" variant="outline" onClick={() => onDelete(category)}>
+                  Delete
+                </Button>
+              </>
+            )}
+          </Group>
         </Card>
       ))}
     </SimpleGrid>

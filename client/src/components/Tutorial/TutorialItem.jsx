@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, Text, Button, Group, Alert } from '@mantine/core';
 import TutorialForm from './TutorialForm';
 import { buildApiUrl } from '../../utils/api';
@@ -59,26 +60,24 @@ const TutorialItem = ({ tutorial, onRefresh, isLoggedIn }) => {
     <Card shadow="sm" padding="lg" radius="md" withBorder>
       {itemError ? <Alert color="red" mb="sm">{itemError}</Alert> : null}
 
-      <Text fw={500}>{tutorial.title}</Text>
-      <Text c="dimmed">{tutorial.description}</Text>
-      <Text c="dimmed">Difficulty: {tutorial.difficulty}</Text>
+      <Text fw={600} size="lg">{tutorial.title}</Text>
+      <Text c="dimmed" mt={4}>Difficulty: {tutorial.difficulty}</Text>
       <Text c="dimmed">Time: {tutorial.AverageTimeSpentMinutes} minutes</Text>
-      <Text c="dimmed">Instructions: {tutorial.instructions}</Text>
-      <Text c="dimmed">Categories: {tutorial.categories?.map((category) => category.name).join(', ') || 'None'}</Text>
-      <Text c="dimmed">
-        Materials:{' '}
-        {tutorial.material?.map((item) => {
-          const details = [item.quantity, item.unit].filter(Boolean).join(' ');
-          return `${item.material?.name || 'Unknown'}${details ? ` (${details})` : ''}`;
-        }).join(', ') || 'None'}
-      </Text>
+      <Text c="dimmed" lineClamp={3} mt="xs">Instructions: {tutorial.instructions}</Text>
+      <Text c="dimmed" mt="xs">Categories: {tutorial.categories?.map((category) => category.name).join(', ') || 'None'}</Text>
 
-      {isLoggedIn ? (
-        <Group mt="sm">
-          <Button size="xs" onClick={() => setModalOpened(true)}>Edit</Button>
-          <Button size="xs" color="red" variant="outline" onClick={deleteTutorial}>Delete</Button>
-        </Group>
-      ) : null}
+      <Group mt="md" wrap="wrap">
+        <Button component={Link} to={`/tutorials/${tutorial._id}`} size="xs" variant="light">
+          View Details
+        </Button>
+
+        {isLoggedIn ? (
+          <>
+            <Button size="xs" onClick={() => setModalOpened(true)}>Edit</Button>
+            <Button size="xs" color="red" variant="outline" onClick={deleteTutorial}>Delete</Button>
+          </>
+        ) : null}
+      </Group>
 
       {modalOpen ? (
         <TutorialForm action="Edit" tutorial={tutorial} opened={modalOpen} onSubmit={updateTutorial} onClose={() => setModalOpened(false)} />

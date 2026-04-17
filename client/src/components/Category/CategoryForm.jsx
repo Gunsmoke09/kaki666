@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Modal, TextInput, Button, Group, Alert } from '@mantine/core';
+import { Modal, TextInput, Textarea, Button, Group, Alert, Stack } from '@mantine/core';
 
 function CategoryForm({ opened, onClose, isUpdateMode, selectedCategory, onCreate, onUpdate }) {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -11,8 +12,10 @@ function CategoryForm({ opened, onClose, isUpdateMode, selectedCategory, onCreat
 
     if (isUpdateMode && selectedCategory) {
       setName(selectedCategory.name || '');
+      setDescription(selectedCategory.description || '');
     } else {
       setName('');
+      setDescription('');
     }
 
     setFormError('');
@@ -21,7 +24,7 @@ function CategoryForm({ opened, onClose, isUpdateMode, selectedCategory, onCreat
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const categoryData = { name: name.trim() };
+    const categoryData = { name: name.trim(), description: description.trim() };
     if (!categoryData.name) {
       setFormError('Category name is required');
       return;
@@ -46,22 +49,32 @@ function CategoryForm({ opened, onClose, isUpdateMode, selectedCategory, onCreat
   return (
     <Modal opened={opened} onClose={onClose} title={isUpdateMode ? 'Edit Category' : 'Create Category'} centered>
       <form onSubmit={handleSubmit}>
-        {formError ? <Alert color="red" mb="sm">{formError}</Alert> : null}
+        <Stack>
+          {formError ? <Alert color="red" mb="sm">{formError}</Alert> : null}
 
-        <TextInput
-          label="Category Name"
-          placeholder="Enter category name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+          <TextInput
+            label="Category Name"
+            placeholder="Enter category name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
 
-        <Group justify="right" mt="md">
-          <Button type="button" variant="default" onClick={onClose} disabled={submitting}>
-            Cancel
-          </Button>
-          <Button type="submit" loading={submitting}>{isUpdateMode ? 'Update' : 'Create'}</Button>
-        </Group>
+          <Textarea
+            label="Description (optional)"
+            placeholder="Add a category description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            minRows={3}
+          />
+
+          <Group justify="right" mt="md">
+            <Button type="button" variant="default" onClick={onClose} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={submitting}>{isUpdateMode ? 'Update' : 'Create'}</Button>
+          </Group>
+        </Stack>
       </form>
     </Modal>
   );
