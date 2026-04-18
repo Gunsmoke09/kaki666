@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Card, Button, Text, Group, SimpleGrid } from '@mantine/core';
+import { getAuthToken } from '../../utils/auth';
 
 const MaterialList = ({ materials, onEdit, onDelete, isLoggedIn }) => {
+  const canManageMaterials = isLoggedIn && Boolean(getAuthToken());
+
   if (!materials.length) {
     return <Text c="dimmed">No materials available.</Text>;
   }
@@ -16,7 +19,7 @@ const MaterialList = ({ materials, onEdit, onDelete, isLoggedIn }) => {
           <Group mt="md" wrap="wrap">
             <Button component={Link} to={`/materials/${material._id}`} variant="light">View Details</Button>
 
-            {isLoggedIn ? (
+            {canManageMaterials ? (
               <>
                 <Button variant="outline" onClick={() => onEdit(material)}>Edit</Button>
                 <Button color="red" variant="outline" onClick={() => onDelete(material)}>Delete</Button>

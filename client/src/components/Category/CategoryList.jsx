@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Button, Text, Group, SimpleGrid } from '@mantine/core';
+import { getAuthToken } from '../../utils/auth';
 
 function CategoryList({ categories, onEdit, onDelete, isLoggedIn }) {
+  const canManageCategories = isLoggedIn && Boolean(getAuthToken());
+
   if (!categories.length) {
     return <Text c="dimmed">No categories available.</Text>;
   }
@@ -23,7 +26,7 @@ function CategoryList({ categories, onEdit, onDelete, isLoggedIn }) {
               View Details
             </Button>
 
-            {isLoggedIn && (
+            {canManageCategories && (
               <>
                 <Button variant="outline" onClick={() => onEdit(category)}>
                   Edit
