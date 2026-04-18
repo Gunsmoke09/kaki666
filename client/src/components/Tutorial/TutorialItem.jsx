@@ -7,6 +7,7 @@ import { getAuthToken } from '../../utils/auth';
 import { readApiError } from '../../utils/http';
 
 const TutorialItem = ({ tutorial, onRefresh, isLoggedIn }) => {
+  const canManageTutorial = isLoggedIn && Boolean(getAuthToken());
   const [modalOpen, setModalOpened] = useState(false);
   const [itemError, setItemError] = useState('');
 
@@ -91,7 +92,7 @@ const TutorialItem = ({ tutorial, onRefresh, isLoggedIn }) => {
           View Details
         </Button>
 
-        {isLoggedIn ? (
+        {canManageTutorial ? (
           <>
             <Button size="xs" onClick={() => setModalOpened(true)}>Edit</Button>
             <Button size="xs" color="red" variant="outline" onClick={deleteTutorial}>Delete</Button>
