@@ -76,6 +76,20 @@ exports.create = [
             return res.status(400).json({ errors: errors.array() });
         }
 
+        const normalizedName = req.body.name.trim().toLowerCase();
+        const existingMaterial = await Material.findOne({
+            name: new RegExp(`^${normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+        })
+            .select("_id")
+            .lean()
+            .exec();
+
+        if (existingMaterial) {
+            return res.status(409).json({
+                error: "Material name already exists. Please use a different name.",
+            });
+        }
+
         const material = new Material({
             name: req.body.name.trim(),
             purchaseSource: req.body.purchaseSource?.trim() || "",
@@ -126,6 +140,21 @@ exports.update = [
 
         if (String(existingMaterial.owner) !== req.user.user_id) {
             return res.status(403).json({ error: "Forbidden: you can only update your own material" });
+        }
+
+        const normalizedName = req.body.name.trim().toLowerCase();
+        const duplicateMaterial = await Material.findOne({
+            _id: { $ne: req.params.id },
+            name: new RegExp(`^${normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+        })
+            .select("_id")
+            .lean()
+            .exec();
+
+        if (duplicateMaterial) {
+            return res.status(409).json({
+                error: "Material name already exists. Please use a different name.",
+            });
         }
 
         const updatedMaterial = await Material.findOneAndUpdate(
