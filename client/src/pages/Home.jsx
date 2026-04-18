@@ -1,6 +1,7 @@
 import { Title, Text, Button, Stack, Group, Card, SimpleGrid, Image } from '@mantine/core';
 import { Link } from 'react-router-dom';
 
+import { getAuthToken } from '../utils/auth';
 
 const CARD_IMAGE_HEIGHT = 160;
 const tutorialImg = `${import.meta.env.BASE_URL}images/tutorials.jpg`;
@@ -8,6 +9,8 @@ const categoryImg = `${import.meta.env.BASE_URL}images/categories.jpg`;
 const materialImg = `${import.meta.env.BASE_URL}images/materials.jpg`;
 
 export default function Home() {
+  const isLoggedIn = Boolean(getAuthToken());
+
   return (
     <Stack gap="xl">
       <Stack gap="sm" ta="center" py="xl">
@@ -22,9 +25,11 @@ export default function Home() {
           <Button component={Link} to="/tutorials" size="md" radius="xl">
             Explore Tutorials
           </Button>
-          <Button component={Link} to="/register" variant="light" size="md" radius="xl">
-            Get Started
-          </Button>
+          {!isLoggedIn && (
+            <Button component={Link} to="/register" variant="light" size="md" radius="xl">
+              Get Started
+            </Button>
+          )}
         </Group>
       </Stack>
 
