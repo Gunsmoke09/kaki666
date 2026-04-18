@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, Text, Button, Group, Alert } from '@mantine/core';
+import { Card, Text, Button, Group, Alert, Stack } from '@mantine/core';
 import TutorialForm from './TutorialForm';
 import { buildApiUrl } from '../../utils/api';
 import { getAuthToken } from '../../utils/auth';
@@ -61,11 +61,30 @@ const TutorialItem = ({ tutorial, onRefresh, isLoggedIn }) => {
       {itemError ? <Alert color="red" mb="sm">{itemError}</Alert> : null}
 
       <Text fw={600} size="lg">{tutorial.title}</Text>
-      <Text c="dimmed" mt={4}>Difficulty: {tutorial.difficulty}</Text>
-      <Text c="dimmed">Time: {tutorial.AverageTimeSpentMinutes} minutes</Text>
-      <Text c="dimmed" lineClamp={3} mt="xs">Description: {tutorial.description}</Text>
-      <Text c="dimmed" lineClamp={3} mt="xs">Instructions: {tutorial.instructions}</Text>
-      <Text c="dimmed" mt="xs">Categories: {tutorial.categories?.map((category) => category.name).join(', ') || 'None'}</Text>
+      <Stack gap="xs" mt="xs">
+        <Group align="flex-start" gap="xs" wrap="nowrap">
+          <Text c="dimmed" fw={600} miw={88}>Difficulty:</Text>
+          <Text c="dimmed" style={{ flex: 1 }}>{tutorial.difficulty}</Text>
+        </Group>
+        <Group align="flex-start" gap="xs" wrap="nowrap">
+          <Text c="dimmed" fw={600} miw={88}>Time:</Text>
+          <Text c="dimmed" style={{ flex: 1 }}>{tutorial.AverageTimeSpentMinutes} minutes</Text>
+        </Group>
+        <Group align="flex-start" gap="xs" wrap="nowrap">
+          <Text c="dimmed" fw={600} miw={88}>Description:</Text>
+          <Text c="dimmed" style={{ flex: 1 }} lineClamp={3}>{tutorial.description}</Text>
+        </Group>
+        <Group align="flex-start" gap="xs" wrap="nowrap">
+          <Text c="dimmed" fw={600} miw={88}>Instructions:</Text>
+          <Text c="dimmed" style={{ flex: 1 }} lineClamp={3}>{tutorial.instructions}</Text>
+        </Group>
+        <Group align="flex-start" gap="xs" wrap="nowrap">
+          <Text c="dimmed" fw={600} miw={88}>Categories:</Text>
+          <Text c="dimmed" style={{ flex: 1 }}>
+            {tutorial.categories?.map((category) => category.name).join(', ') || 'None'}
+          </Text>
+        </Group>
+      </Stack>
 
       <Group mt="md" wrap="wrap">
         <Button component={Link} to={`/tutorials/${tutorial._id}`} size="xs" variant="light">

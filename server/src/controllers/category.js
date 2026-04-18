@@ -138,6 +138,20 @@ exports.create = [
             return res.status(400).json({ errors: errors.array() });
         }
 
+        const normalizedName = req.body.name.trim().toLowerCase();
+        const existingCategory = await Category.findOne({
+            name: new RegExp(`^${normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+        })
+            .select("_id")
+            .lean()
+            .exec();
+
+        if (existingCategory) {
+            return res.status(409).json({
+                error: "Category name already exists. Please use a different name.",
+            });
+        }
+
         const category = new Category({
             name: req.body.name.trim(),
             description: req.body.description?.trim() || "",
@@ -188,6 +202,21 @@ exports.update = [
 
         if (String(existingCategory.owner) !== req.user.user_id) {
             return res.status(403).json({ error: "Forbidden: you can only update your own category" });
+        }
+
+        const normalizedName = req.body.name.trim().toLowerCase();
+        const duplicateCategory = await Category.findOne({
+            _id: { $ne: req.params.id },
+            name: new RegExp(`^${normalizedName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+        })
+            .select("_id")
+            .lean()
+            .exec();
+
+        if (duplicateCategory) {
+            return res.status(409).json({
+                error: "Category name already exists. Please use a different name.",
+            });
         }
 
         const updatedCategory = await Category.findOneAndUpdate(
