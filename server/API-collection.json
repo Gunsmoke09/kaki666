@@ -1,0 +1,467 @@
+{
+  "v": 11,
+  "name": "a02",
+  "folders": [
+    {
+      "v": 11,
+      "name": "auth",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/auth/login",
+          "name": "Login",
+          "params": [],
+          "headers": [],
+          "method": "POST",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"username\" : \"videotest\",\n  \"password\": \"videotest\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null
+    },
+    {
+      "v": 11,
+      "name": "category",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/categories",
+          "name": "Create Category",
+          "params": [],
+          "headers": [],
+          "method": "POST",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTcyMjE5LCJleHAiOjE3NzY1NzU4MTl9.ZHeKPMY5a3jWorr68X0xwseKQK1J1PzKCwfAE997d1w"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"name\": \"Basket Weaving23\",\n  \"description\": \"Projects related to woven baskets and decorative weaving.\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/categories",
+          "name": "input validation test",
+          "params": [],
+          "headers": [],
+          "method": "POST",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTc0NTUyLCJleHAiOjE3NzY1NzgxNTJ9.KcaferwAGc2-Dx6kEMkTQRaVb3R2BS0E5V0sGXxkCLM"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"name\": \"\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/categories",
+          "name": "Get all categories",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/categories/<id>",
+          "name": "Get category by ID",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/categories/69e45f966644bdfa752d109d",
+          "name": "Update Category",
+          "params": [],
+          "headers": [],
+          "method": "PUT",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTc0MzM3LCJleHAiOjE3NzY1Nzc5Mzd9.nAXIBb9u4fiTCs0SFiTP4M1i3aTVgs7_OdZX49vfY48"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"name\": \"Knitting2\",\n  \"description\": \"Projects related to knitting and yarn crafts.\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/categories/<id>",
+          "name": "Delete category",
+          "params": [],
+          "headers": [],
+          "method": "DELETE",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTc0MzM3LCJleHAiOjE3NzY1Nzc5Mzd9.nAXIBb9u4fiTCs0SFiTP4M1i3aTVgs7_OdZX49vfY48"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null
+    },
+    {
+      "v": 11,
+      "name": "Material",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/materials",
+          "name": "Create Material",
+          "params": [],
+          "headers": [],
+          "method": "POST",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTc0MzM3LCJleHAiOjE3NzY1Nzc5Mzd9.nAXIBb9u4fiTCs0SFiTP4M1i3aTVgs7_OdZX49vfY48"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"name\": \"Rattan Strips23\",\n  \"purchaseSource\": \"Craft Store\",\n}"
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/materials?search=Basket",
+          "name": "Get by search",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/materials",
+          "name": "Get all materials",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/materials/<id>",
+          "name": "Get material by ID",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/materials/<id>",
+          "name": "update material",
+          "params": [],
+          "headers": [],
+          "method": "PUT",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTc0MzM3LCJleHAiOjE3NzY1Nzc5Mzd9.nAXIBb9u4fiTCs0SFiTP4M1i3aTVgs7_OdZX49vfY48"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"name\": \"Premium Yarn23\",\n  \"purchaseSource\": \"Craft Shop\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/materials/<id>",
+          "name": "delete material",
+          "params": [],
+          "headers": [],
+          "method": "DELETE",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTc0MzM3LCJleHAiOjE3NzY1Nzc5Mzd9.nAXIBb9u4fiTCs0SFiTP4M1i3aTVgs7_OdZX49vfY48"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null
+    },
+    {
+      "v": 11,
+      "name": "Tutorial",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "name": "Create Tutorial",
+          "method": "POST",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/tutorials",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTc0MzM3LCJleHAiOjE3NzY1Nzc5Mzd9.nAXIBb9u4fiTCs0SFiTP4M1i3aTVgs7_OdZX49vfY48"
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"title\": \"Beginner Basket Weaving23\",\n  \"description\": \"Learn how to create a decorative woven basket using beginner techniques.\",\n  \"difficulty\": \"Beginner\",\n  \"AverageTimeSpentMinutes\": 90,\n  \"instructions\": \"Prepare strips, weave base, build walls, finish edges.\",\n  \"categories\": [\"CATEGORY_ID_HERE\"],\n  \"material\": [\n    {\n      \"material\": \"MATERIAL_ID_HERE\",\n      \"quantity\": 20,\n      \"unit\": \"pieces\"\n    }\n  ]\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/tutorials/<id>",
+          "name": "Get All Tutorial",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTcyMjE5LCJleHAiOjE3NzY1NzU4MTl9.ZHeKPMY5a3jWorr68X0xwseKQK1J1PzKCwfAE997d1w"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/tutorials/<id>",
+          "name": "Get a Tutorial by ID",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTcyMjE5LCJleHAiOjE3NzY1NzU4MTl9.ZHeKPMY5a3jWorr68X0xwseKQK1J1PzKCwfAE997d1w"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/tutorials?page=1&limit=9",
+          "name": "Get by pagination",
+          "params": [],
+          "headers": [],
+          "method": "GET",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/tutorials/<id>",
+          "name": "Update Tutorial",
+          "params": [],
+          "headers": [],
+          "method": "PUT",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "username": "",
+            "password": "",
+            "algorithm": "MD5",
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTc0MzM3LCJleHAiOjE3NzY1Nzc5Mzd9.nAXIBb9u4fiTCs0SFiTP4M1i3aTVgs7_OdZX49vfY48"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"title\": \"Updated Wool Scarf\",\n  \"difficulty\": \"Intermediate\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {}
+        },
+        {
+          "v": "17",
+          "endpoint": "https://koala04.ifn666.com/assignment2/api/tutorials/<id>",
+          "name": "Delete Tutorial",
+          "params": [],
+          "headers": [],
+          "method": "DELETE",
+          "auth": {
+            "authType": "bearer",
+            "authActive": true,
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjllMzYyYzc4ZWRmZTZiNzkzMGM2ZTczIiwiaWF0IjoxNzc2NTc0MzM3LCJleHAiOjE3NzY1Nzc5Mzd9.nAXIBb9u4fiTCs0SFiTP4M1i3aTVgs7_OdZX49vfY48"
+          },
+          "preRequestScript": "",
+          "testScript": "",
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {}
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null
+    }
+  ],
+  "requests": [],
+  "headers": [],
+  "auth": {
+    "authType": "none",
+    "authActive": true
+  },
+  "variables": [],
+  "description": ""
+}
